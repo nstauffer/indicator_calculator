@@ -119,18 +119,18 @@ server <- function(input, output, session) {
                                                           results <- jsonlite::fromJSON(results_character)
                                                       })
                          
-                         results <- do.call(rbind,
-                                            query_results_list)
+                         query_results <- do.call(rbind,
+                                                  query_results_list)
                          
                          # So we can tell the user later which actually got queried
                          workspace$queried_ecosites <- unique(results$EcologicalSiteId)
                          workspace$missing_ecosites <- ecosite_id_vector[!(ecosite_id_vector %in% workspace$queried_ecosites)]
                          
                          # Only keep going if there are results!!!!
-                         if (length(results) > 0) {
+                         if (length(query_results) > 0) {
                              # Convert from character to numeric variables where possible
-                             data_corrected <- lapply(X = names(results),
-                                                      data = results,
+                             data_corrected <- lapply(X = names(query_results),
+                                                      data = query_results,
                                                       FUN = function(X, data){
                                                           # Get the current variable values as a vector
                                                           vector <- data[[X]]
@@ -149,7 +149,7 @@ server <- function(input, output, session) {
                              # so I'm resorting to using dplyr
                              data <- dplyr::bind_cols(data_corrected)
                              # Correct the names of the variables
-                             names(data) <- names(results)
+                             names(data) <- names(query_results)
                              
                              # Put it in the workspace list
                              workspace$raw_data <- data
