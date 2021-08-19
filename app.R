@@ -1,4 +1,5 @@
 library(shiny)
+library(terradactyl)
 
 #### UI ####
 # Define UI for application that draws a histogram
@@ -16,7 +17,33 @@ ui <- fluidPage(
             textInput(inputId = "search_string",
                       label = "Search string",
                       value = "",
-                      placeholder = "R036XB006NM")
+                      placeholder = "R036XB006NM"),
+            actionButton(inputId = "search_button",
+                         label = "Search!"),
+            
+            selectInput(inputId = "grouping_vars",
+                        label = "Grouping variable(s)",
+                        choices = c("Plot ID" = "PlotID",
+                                    "Project Name" = "ProjectName",
+                                    "State" = "State",
+                                    "County" = "Country",
+                                    "Ecological Site ID" = "EcologicalSiteId"),
+                        multiple = TRUE),
+            selectInput(inputId = "indicator_type",
+                        label = "Indicator calculation",
+                        choices = c("Percent cover (first hit)",
+                                    "Percent cover (any hit)",
+                                    "Percent cover (between plant)",
+                                    "Percent cover (bare soil)",
+                                    "Percent cover (litter)")),
+            conditionalPanel(condition = "input.search_button >= 1",
+                             actionButton(inputId = "calculate_button",
+                                          label = "Calculate!")),
+            
+            # Only show if there are results to download
+            conditionalPanel(condition = "input.calculate_button >= 1",
+                             downloadButton(outputId = 'downloadData',
+                                            label = 'Download current results'))
         ),
 
         # Show a plot of the generated distribution
