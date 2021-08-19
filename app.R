@@ -26,7 +26,7 @@ ui <- fluidPage(
                         choices = c("Plot ID" = "PlotID",
                                     "Project Name" = "ProjectName",
                                     "State" = "State",
-                                    "County" = "Country",
+                                    "County" = "County",
                                     "Ecological Site ID" = "EcologicalSiteId"),
                         multiple = TRUE),
             selectInput(inputId = "indicator_type",
