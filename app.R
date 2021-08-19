@@ -4,9 +4,9 @@ library(terradactyl)
 #### UI ####
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-
+    
     titlePanel("Indicator Calculator"),
-
+    
     # Sidebar
     sidebarLayout(
         sidebarPanel(
@@ -45,7 +45,7 @@ ui <- fluidPage(
                              downloadButton(outputId = 'downloadData',
                                             label = 'Download current results'))
         ),
-
+        
         # Show a plot of the generated distribution
         mainPanel(
             tabsetPanel(id = "maintabs",
@@ -64,12 +64,12 @@ ui <- fluidPage(
 
 #### SERVER ####
 server <- function(input, output, session) {
-
+    
     workspace <- reactiveValues(placeholder = TRUE,
                                 temp_directory = tempdir(),
                                 original_directory = getwd())
     
-
+    
     #### When the search button is pressed, do this ####
     observeEvent(eventExpr = input$search_button,
                  handlerExpr = {
@@ -81,8 +81,8 @@ server <- function(input, output, session) {
                          
                          # Handle multiple requested ecosites at once!
                          search_string_vector <- stringr::str_split(string = search_string,
-                                                                 pattern = ",",
-                                                                 simplify = TRUE)
+                                                                    pattern = ",",
+                                                                    simplify = TRUE)
                          search_string_vector <- trimws(search_string_vector)
                          
                          query_results_list <- lapply(X = search_string_vector,
@@ -128,6 +128,7 @@ server <- function(input, output, session) {
                          
                          # Only keep going if there are results!!!!
                          if (length(query_results) > 0) {
+                             message("Correcting numeric variables")
                              # Convert from character to numeric variables where possible
                              data_corrected <- lapply(X = names(query_results),
                                                       data = query_results,
@@ -155,8 +156,8 @@ server <- function(input, output, session) {
                              workspace$raw_data <- data
                          } else {
                              output$query_error <- renderText(paste("The following are not valid ecological site IDs recognized by EDIT:",
-                                                                      paste(workspace$missing_ecosites,
-                                                                            collapse = ", ")))
+                                                                    paste(workspace$missing_ecosites,
+                                                                          collapse = ", ")))
                          }
                          
                          # Render the data to present to the user
