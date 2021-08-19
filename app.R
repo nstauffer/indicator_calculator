@@ -21,14 +21,14 @@ ui <- fluidPage(
             actionButton(inputId = "search_button",
                          label = "Search!"),
             
-            selectInput(inputId = "grouping_vars",
-                        label = "Grouping variable(s)",
-                        choices = c("Plot ID" = "PlotID",
-                                    "Project Name" = "ProjectName",
-                                    "State" = "State",
-                                    "County" = "County",
-                                    "Ecological Site ID" = "EcologicalSiteId"),
-                        multiple = TRUE),
+            # selectInput(inputId = "grouping_vars",
+            #             label = "Grouping variable(s)",
+            #             choices = c("Plot ID" = "PlotID",
+            #                         "Project Name" = "ProjectName",
+            #                         "State" = "State",
+            #                         "County" = "County",
+            #                         "Ecological Site ID" = "EcologicalSiteId"),
+            #             multiple = TRUE),
             selectInput(inputId = "indicator_type",
                         label = "Indicator calculation",
                         choices = c("Percent cover by species (first hit)" = "first_hit",
@@ -176,8 +176,9 @@ server <- function(input, output, session) {
                  handlerExpr = {
                      # Build a string to parse
                      # This is because the pct_cover_* functions take bare variable names
-                     var_string <- paste0(input$grouping_vars,
-                                          collapse = ", ")
+                     # var_string <- paste0(input$grouping_vars,
+                     #                      collapse = ", ")
+                     var_string <- ""
                      
                      argument_string <- "lpi_tall = workspace$raw_data, tall = FALSE, by_line = FALSE, "
                      
