@@ -34,9 +34,96 @@ server <- function(input, output, session) {
         x    <- faithful[, 2]
         bins <- seq(min(x), max(x), length.out = input$bins + 1)
 
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
-    })
+    #### When the search button is pressed, do this ####
+    observeEvent(eventExpr = input$fetch_data,
+                 handlerExpr = {
+                     output$query_error <- renderText("")
+                     # Only do anything if there's an search string
+                     if (input$search_string != "") {
+                         # Make sure it's uppercase
+                         search_string <- toupper(input$search_string)
+                         
+                         # Handle multiple requested ecosites at once!
+                         search_string_vector <- stringr::str_split(string = search_string,
+                                                                 pattern = ",",
+                                                                 simplify = TRUE)
+                         search_string_vector <- trimws(search_string_vector)
+                         
+                         query_results_list <- lapply(X = search_string_vector,
+                                                      FUN = function(X,
+                                                                     search_type = input$search_type){
+                                                          # Build the query
+                                                          query <- switch(search_type,
+                                                                          "Project Key" = {
+                                                                              paste0("http://api.landscapedatacommons.org/api/",
+                                                                                     "datalpi?",
+                                                                                     "ProjectKey=",
+                                                                                     X)
+                                                                          },
+                                                                          "Ecological Site ID" = {
+                                                                              paste0("http://api.landscapedatacommons.org/api/",
+                                                                                     "datalpi?",
+                                                                                     "EcologicalSiteId=",
+                                                                                     X)
+                                                                          })
+                                                          
+                                                          # Getting the data via curl
+                                                          # connection <- curl::curl(query)
+                                                          # results_raw <- readLines(connection)
+                                                          # results <- jsonlite::fromJSON(results_raw)
+                                                          print("Attempting to query LDC")
+                                                          # Full query results for geoindicators based on ecosite
+                                                          full_results <- httr::GET(query,
+                                                                                    config = httr::timeout(60))
+                                                          # Grab only the data portion
+                                                          results_raw <- full_results[["content"]]
+                                                          # Convert from raw to character
+                                                          results_character <- rawToChar(results_raw)
+                                                          # Convert from character to data frame
+                                                          results <- jsonlite::fromJSON(results_character)
+                                                      })
+                         
+                         results <- do.call(rbind,
+                                            query_results_list)
+                         
+                         # So we can tell the user later which actually got queried
+                         workspace$queried_ecosites <- unique(results$EcologicalSiteId)
+                         workspace$missing_ecosites <- ecosite_id_vector[!(ecosite_id_vector %in% workspace$queried_ecosites)]
+                         
+                         # Only keep going if there are results!!!!
+                         if (length(results) > 0) {
+                             # Convert from character to numeric variables where possible
+                             data_corrected <- lapply(X = names(results),
+                                                      data = results,
+                                                      FUN = function(X, data){
+                                                          # Get the current variable values as a vector
+                                                          vector <- data[[X]]
+                                                          # Try to coerce into numeric
+                                                          numeric_vector <- as.numeric(vector)
+                                                          # If that works without introducing NAs, return the numeric vector
+                                                          # Otherwise, return the original character vector
+                                                          if (all(!is.na(numeric_vector))) {
+                                                              return(numeric_vector)
+                                                          } else {
+                                                              return(vector)
+                                                          }
+                                                      })
+                             
+                             # From some reason co.call(cbind, data_corrected) was returning a list not a data frame
+                             # so I'm resorting to using dplyr
+                             data <- dplyr::bind_cols(data_corrected)
+                             # Correct the names of the variables
+                             names(data) <- names(results)
+                             
+                             # Put it in the workspace list
+                             workspace$raw_data <- data
+                         } else {
+                             output$query_error <- renderText(paste("The following are not valid ecological site IDs recognized by EDIT:",
+                                                                      paste(workspace$missing_ecosites,
+                                                                            collapse = ", ")))
+                         }
+                     }
+                 })
     
     #### When the calculate button is pressed, do this ####
     observeEvent(eventExpr = input$calculate_button,
