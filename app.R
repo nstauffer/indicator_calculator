@@ -173,22 +173,80 @@ server <- function(input, output, session) {
     #### When the calculate button is pressed, do this ####
     observeEvent(eventExpr = input$calculate_button,
                  handlerExpr = {
-                     terradactyl::pct_cover()
-                 })
-    
-    
-    ##### Download handler for the .zip file created with plots ####
-    output$downloadData <- downloadHandler(
-        filename = function() {
-            paste0("indicator_results_",
-                   paste0(format(Sys.Date(), "%Y-%m-%d"), "_",
-                          format(Sys.time(), "%H%M", tz = "GMT")),
-                   ".csv")
-        },
-        content = function(file) {
-            file.copy(paste0(workspace$temp_directory, "/results.csv"), file)
-        })
-}
+                     # Build a string to parse
+                     # This is because the pct_cover_* functions take bare variable names
+                     var_string <- paste0(input$grouping_vars,
+                                          collapse = ", ")
+                     
+                     argument_string <- "lpi_tall = workspace$raw_data, tall = FALSE, by_line = FALSE, "
+                     
+                     command_string <- switch(input$indicator_type,
+                                              "first_hit" = {
+                                                  gsub(paste0("pct_cover_species(hit = 'first', ",
+                                                              argument_string,
+                                                              var_string,
+                                                              ")"),
+                                                       pattern = ", )$",
+                                                       replacement = ")")
+                                                       },
+                                              "any_hit" = {
+                                                  gsub(paste0("pct_cover_species(hit = 'any', ",
+                                                              argument_string,
+                                                              var_string,
+                                                              ")"),
+                                                       pattern = ", )$",
+                                                       replacement = ")")
+                                                       },
+                                              "between_plant" = {
+                                                  gsub(paste0("pct_cover_species(hit = 'first', ",
+                                                              argument_string,
+                                                              var_string,
+                                                              ")"),
+                                                       pattern = ", )$",
+                                                       replacement = ")")
+                                              },
+                                              "bare_soil" = {
+                                                  gsub(paste0("pct_cover_bare_soil(",
+                                                              argument_string,
+                                                              var_string,
+                                                              ")"),
+                                                       pattern = ", )$",
+                                                       replacement = ")")
+                                              },
+                                              "litter" = {
+                                                  gsub(paste0("pct_cover_litter(",
+                                                              argument_string,
+                                                              var_string,
+                                                              ")"),
+                                                       pattern = ", )$",
+                                                       replacement = ")")
+})
+                                                  message(paste0("Command string is:", command_string))
+                                                  workspace$results <- eval(parse(text = command_string))
+                                                  
+                                                  # Render the results
+                                                  output$results_table <- renderDataTable(workspace$results)
+                                                  
+                                                  # Write the results in case they want to doanload them
+                                                  write.csv(x = workspace$results,
+                                                            file = paste0(workspace$temp_directory,
+                                                                          "/results.csv"),
+                                                            row.names = FALSE)
+                                              })
+                                                  
+                                                  
+                                                  ##### Download handler for the .zip file created with plots ####
+                                                  output$downloadData <- downloadHandler(
+                                                      filename = function() {
+                                                          paste0("indicator_results_",
+                                                                 paste0(format(Sys.Date(), "%Y-%m-%d"), "_",
+                                                                        format(Sys.time(), "%H%M", tz = "GMT")),
+                                                                 ".csv")
+                                                      },
+                                                      content = function(file) {
+                                                          file.copy(paste0(workspace$temp_directory, "/results.csv"), file)
+                                                      })
+                                                  }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
