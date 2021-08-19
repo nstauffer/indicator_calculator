@@ -21,7 +21,13 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("distPlot")
+            tabsetPanel(
+                tabPanel(title = "Instructions")
+            ),
+            tabsetPanel(title = "Data"
+            ),
+            tabsetPanel(title = "Results"
+            )
         )
     )
 )
