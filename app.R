@@ -37,6 +37,14 @@ server <- function(input, output, session) {
         # draw the histogram with the specified number of bins
         hist(x, breaks = bins, col = 'darkgray', border = 'white')
     })
+    
+    #### When the calculate button is pressed, do this ####
+    observeEvent(eventExpr = input$calculate_button,
+                 handlerExpr = {
+                     terradactyl::pct_cover()
+                 })
+    
+    
     ##### Download handler for the .zip file created with plots ####
     output$downloadData <- downloadHandler(
         filename = function() {
