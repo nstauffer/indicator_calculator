@@ -123,8 +123,8 @@ server <- function(input, output, session) {
                                                   query_results_list)
                          
                          # So we can tell the user later which actually got queried
-                         workspace$queried_ecosites <- unique(results$EcologicalSiteId)
-                         workspace$missing_ecosites <- ecosite_id_vector[!(ecosite_id_vector %in% workspace$queried_ecosites)]
+                         workspace$queried_ecosites <- unique(query_results$EcologicalSiteId)
+                         workspace$missing_ecosites <- search_string_vector[!(search_string_vector %in% workspace$queried_ecosites)]
                          
                          # Only keep going if there are results!!!!
                          if (length(query_results) > 0) {
