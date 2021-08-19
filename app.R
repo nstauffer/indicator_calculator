@@ -48,12 +48,15 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-            tabsetPanel(
-                tabPanel(title = "Instructions")
-            ),
-            tabsetPanel(title = "Data"
-            ),
-            tabsetPanel(title = "Results"
+            tabsetPanel(id = "maintabs",
+                        tabPanel(title = "Instructions")
+                        ,
+                        tabPanel(title = "Data",
+                                 dataTableOutput("data_table")
+                        ),
+                        tabPanel(title = "Results",
+                                 dataTableOutput("results_table")
+                        )
             )
         )
     )
