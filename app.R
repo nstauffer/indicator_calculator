@@ -71,7 +71,7 @@ server <- function(input, output, session) {
     
 
     #### When the search button is pressed, do this ####
-    observeEvent(eventExpr = input$fetch_data,
+    observeEvent(eventExpr = input$search_button,
                  handlerExpr = {
                      output$query_error <- renderText("")
                      # Only do anything if there's an search string
