@@ -36,6 +36,11 @@ ui <- fluidPage(
                                     "Percent cover (between plant)" = "between_plant",
                                     "Percent cover (bare soil)" = "bare_soil",
                                     "Percent cover (litter)" = "litter")),
+            radioButtons(inputId = "output_format",
+                         label = "Results table format",
+                         choices = c("Tall" = "tall",
+                                     "Wide" = "wide"),
+                         selected = "wide"),
             conditionalPanel(condition = "input.search_button >= 1",
                              actionButton(inputId = "calculate_button",
                                           label = "Calculate!")),
@@ -180,7 +185,11 @@ server <- function(input, output, session) {
                      #                      collapse = ", ")
                      var_string <- ""
                      
-                     argument_string <- "lpi_tall = workspace$raw_data, tall = FALSE, by_line = FALSE, "
+                     argument_string <- paste0("lpi_tall = workspace$raw_data, tall = ",
+                                               switch(input$output_format,
+                                                      wide = {"FALSE"},
+                                                      tall = {"TRUE"}),
+                                               ", by_line = FALSE, ")
                      
                      command_string <- switch(input$indicator_type,
                                               "first_hit" = {
