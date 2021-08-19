@@ -37,6 +37,17 @@ server <- function(input, output, session) {
         # draw the histogram with the specified number of bins
         hist(x, breaks = bins, col = 'darkgray', border = 'white')
     })
+    ##### Download handler for the .zip file created with plots ####
+    output$downloadData <- downloadHandler(
+        filename = function() {
+            paste0("indicator_results_",
+                   paste0(format(Sys.Date(), "%Y-%m-%d"), "_",
+                          format(Sys.time(), "%H%M", tz = "GMT")),
+                   ".csv")
+        },
+        content = function(file) {
+            file.copy(paste0(workspace$temp_directory, "/results.csv"), file)
+        })
 }
 
 # Run the application 
