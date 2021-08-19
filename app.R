@@ -158,6 +158,15 @@ server <- function(input, output, session) {
                                                                       paste(workspace$missing_ecosites,
                                                                             collapse = ", ")))
                          }
+                         
+                         # Render the data to present to the user
+                         print(workspace$raw_data)
+                         message("Rendering data table")
+                         output$data_table <- renderDataTable(workspace$raw_data)
+                         
+                         updateTabsetPanel(session,
+                                           inputId = "maintabs",
+                                           selected = "Data")
                      }
                  })
     
