@@ -29,10 +29,10 @@ ui <- fluidPage(
 #### SERVER ####
 server <- function(input, output, session) {
 
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    workspace <- reactiveValues(placeholder = TRUE,
+                                temp_directory = tempdir(),
+                                original_directory = getwd())
+    
 
     #### When the search button is pressed, do this ####
     observeEvent(eventExpr = input$fetch_data,
