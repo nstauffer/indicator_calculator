@@ -74,7 +74,26 @@ server <- function(input, output, session) {
     
     workspace <- reactiveValues(placeholder = TRUE,
                                 temp_directory = tempdir(),
-                                original_directory = getwd())
+                                original_directory = getwd(),
+                                current_lut = read.csv("aim_state_species_list_2020.csv",
+                                                       stringsAsFactors = FALSE),
+                                aim_lut = read.csv("aim_state_species_list_2020.csv",
+                                                   stringsAsFactors = FALSE),
+                                usda_lut = read.csv("usda_plants_characteristics_lookup.csv",
+                                                    stringsAsFactors = FALSE),
+                                required_data_vars = c("PrimaryKey", "layer", "code"),
+                                illegal_grouping_vars = c("PrimaryKey", "DBKey", 
+                                                          "Latitude_NAD83", "Longitude_NAD83",
+                                                          "DateEstablished", "DateLoadedInDb", "ProjectName", 
+                                                          "ProjectKey", "LocationType", "DateVisited", "PercentCoveredByEcoSite", 
+                                                          "wkb_geometry", "RecKey", "DateModified", "FormType", 
+                                                          "FormDate", "Direction", "Measure", "LineLengthAmount", "SpacingIntervalAmount", 
+                                                          "SpacingType", "ShowCheckbox", "CheckboxLabel", "PointLoc", "PointNbr", 
+                                                          "ShrubShape", "layer", "chckbox"),
+                                nonspecies_codes = c("L", "HL", "WL", "NL",
+                                                     "DS", "W", "VL", "GR", "CB", "ST",
+                                                     "S", "LC", "M", "D", "W", "R",
+                                                     "CY", "EL", "BY", "BR"))
     
     
     #### When the search button is pressed, do this ####
