@@ -245,6 +245,10 @@ server <- function(input, output, session) {
                                file = paste0(workspace$temp_directory,
                                              "/results.csv"),
                                row.names = FALSE)
+                     
+                     updateTabsetPanel(session = session,
+                                       inputId = "maintabs",
+                                       "Results")
                  })
     
     
