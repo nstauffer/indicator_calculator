@@ -169,8 +169,9 @@ server <- function(input, output, session) {
                          
                          # Render the data to present to the user
                          print(workspace$raw_data)
+                         workspace$display_data <- workspace$raw_data
                          message("Rendering data table")
-                         output$data_table <- renderDataTable(workspace$raw_data)
+                         output$data_table <- renderDataTable(workspace$display_data)
                          
                          updateTabsetPanel(session,
                                            inputId = "maintabs",
