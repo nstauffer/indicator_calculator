@@ -144,6 +144,22 @@ server <- function(input, output, session) {
                          workspace[["current_lut"]] <- workspace$custom_lut
                      }
                  })
+    #### When data are uploaded, do this ####
+    observeEvent(eventExpr = input$uploaded_data,
+                 handlerExpr = {
+                     workspace$raw_data <- input$uploaded_data
+                     # Render the data to present to the user
+                     print(workspace$raw_data)
+                     workspace$display_data <- workspace$raw_data
+                     message("Rendering data table")
+                     output$data_table <- renderDataTable(workspace$display_data)
+                     
+                     updateTabsetPanel(session,
+                                       inputId = "maintabs",
+                                       selected = "Data")
+                 })    
+    
+    
     #### When the search button is pressed, do this ####
     observeEvent(eventExpr = input$search_button,
                  handlerExpr = {
