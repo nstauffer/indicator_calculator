@@ -187,7 +187,7 @@ server <- function(input, output, session) {
                      #                      collapse = ", ")
                      var_string <- ""
                      
-                     argument_string <- paste0("lpi_tall = workspace$raw_data, tall = ",
+                     argument_string <- paste0("lpi_tall = workspace$current_data, tall = ",
                                                switch(input$output_format,
                                                       wide = {"FALSE"},
                                                       tall = {"TRUE"}),
