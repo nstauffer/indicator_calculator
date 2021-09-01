@@ -23,6 +23,9 @@ ui <- fluidPage(
             actionButton(inputId = "search_button",
                          label = "Search!"),
             
+            fileInput(inputId = "uploaded_data",
+                      label = "Upload data",
+                      accept = "CSV"),
             selectInput(inputId = "indicator_type",
                         label = "Indicator calculation",
                         choices = c("Percent cover by custom groups (first hit)" = "first_hit",
@@ -105,6 +108,15 @@ server <- function(input, output, session) {
                                                      "S", "LC", "M", "D", "W", "R",
                                                      "CY", "EL", "BY", "BR"))
     
+    #### When a custom lookup table is uploaded, do this ####
+    observeEvent(eventExpr = input$custom_lut,
+                 handlerExpr = {
+                     workspace[["custom_lut"]] <- read.csv(input$custom_lut$datapath,
+                                                           stringsAsFactors = FALSE)
+                     
+                     workspace[["current_lut"]] <- workspace$custom_lut
+                     output$current_lut_table <- renderDataTable(workspace$current_lut)
+                 })
     
     #### When the search button is pressed, do this ####
     observeEvent(eventExpr = input$search_button,
