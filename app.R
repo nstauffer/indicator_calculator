@@ -195,7 +195,7 @@ server <- function(input, output, session) {
                      
                      command_string <- switch(input$indicator_type,
                                               "first_hit" = {
-                                                  gsub(paste0("pct_cover_species(hit = 'first', ",
+                                                  gsub(paste0("pct_cover(hit = 'first', ",
                                                               argument_string,
                                                               var_string,
                                                               ")"),
@@ -203,17 +203,30 @@ server <- function(input, output, session) {
                                                        replacement = ")")
                                               },
                                               "any_hit" = {
-                                                  gsub(paste0("pct_cover_species(hit = 'any', ",
+                                                  gsub(paste0("pct_cover(hit = 'any', ",
                                                               argument_string,
                                                               var_string,
                                                               ")"),
                                                        pattern = ", )$",
                                                        replacement = ")")
                                               },
-                                              "between_plant" = {
+                                              "species_first_hit" = {
                                                   gsub(paste0("pct_cover_species(hit = 'first', ",
                                                               argument_string,
-                                                              var_string,
+                                                              ")"),
+                                                       pattern = ", )$",
+                                                       replacement = ")")
+                                              },
+                                              "species_any_hit" = {
+                                                  gsub(paste0("pct_cover_species(hit = 'any', ",
+                                                              argument_string,
+                                                              ")"),
+                                                       pattern = ", )$",
+                                                       replacement = ")")
+                                              },
+                                              "between_plant" = {
+                                                  gsub(paste0("pct_cover_between_plant(",
+                                                              argument_string,
                                                               ")"),
                                                        pattern = ", )$",
                                                        replacement = ")")
@@ -221,7 +234,6 @@ server <- function(input, output, session) {
                                               "bare_soil" = {
                                                   gsub(paste0("pct_cover_bare_soil(",
                                                               argument_string,
-                                                              var_string,
                                                               ")"),
                                                        pattern = ", )$",
                                                        replacement = ")")
@@ -229,7 +241,6 @@ server <- function(input, output, session) {
                                               "litter" = {
                                                   gsub(paste0("pct_cover_litter(",
                                                               argument_string,
-                                                              var_string,
                                                               ")"),
                                                        pattern = ", )$",
                                                        replacement = ")")
