@@ -144,6 +144,16 @@ server <- function(input, output, session) {
                          workspace[["current_lut"]] <- workspace$custom_lut
                      }
                  })
+    #### When workspace$current_data gets updated ####
+    observeEvent(eventExpr = workspace$current_data,
+                 handlerExpr = {
+                     all_vars <- names(workspace$current_data)
+                     acceptable_vars <- all_vars[!(all_vars %in% workspace$illegal_grouping_vars)]
+                     updateSelectInput(inputId = "grouping_vars",
+                                       choices = acceptable_vars)
+                 })
+    
+
     #### When data are uploaded, do this ####
     observeEvent(eventExpr = input$uploaded_data,
                  handlerExpr = {
