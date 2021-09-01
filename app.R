@@ -159,7 +159,7 @@ server <- function(input, output, session) {
                                                                    species_duration = "Duration",
                                                                    growth_habit_file = "",
                                                                    by_state = "SpeciesState" %in% names(workspace$current_lut))
-                                                                   
+                         
                          output$data_table <- renderDataTable(current_data)
                          workspace$current_data <- current_data
                          
@@ -185,7 +185,7 @@ server <- function(input, output, session) {
                              
                              workspace$current_lut <- rbind(lut_missing,
                                                             workspace$current_lut)
-
+                             
                          } else {
                              output$missing_codes_error <- renderText("")
                          }
