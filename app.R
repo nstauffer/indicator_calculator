@@ -67,9 +67,16 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
             tabsetPanel(id = "maintabs",
-                        tabPanel(title = "Instructions")
-                        ,
+                        tabPanel(title = "Instructions"
+                        ),
+                        tabPanel(title = "Lookup Table",
+                                 textOutput("missing_codes_error"),
+                                 downloadButton(outputId = 'download_lut',
+                                                label = 'Download current lookup table'),
+                                 dataTableOutput("current_lut_table"),
+                        ),
                         tabPanel(title = "Data",
+                                 textOutput("query_error"),
                                  dataTableOutput("data_table")
                         ),
                         tabPanel(title = "Results",
