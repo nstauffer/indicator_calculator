@@ -26,6 +26,20 @@ ui <- fluidPage(
             fileInput(inputId = "uploaded_data",
                       label = "Upload data",
                       accept = "CSV"),
+            
+            selectInput(inputId = "lookup_table",
+                        label = "Species information lookup table",
+                        choices = c("AIM" = "aim",
+                                    "USDA Plants" = "usda_plants",
+                                    "Custom" = "custom")),
+            # checkboxInput(inputId = "by_state",
+            #               label = "Join lookup table to data by state"),
+            
+            conditionalPanel(condition = "input.lookup_table == 'custom'",
+                             fileInput(inputId = "custom_lut",
+                                       label = "Upload custom lookup table",
+                                       accept = "CSV")),
+            
             selectInput(inputId = "indicator_type",
                         label = "Indicator calculation",
                         choices = c("Percent cover by custom groups (first hit)" = "first_hit",
@@ -118,6 +132,18 @@ server <- function(input, output, session) {
                      output$current_lut_table <- renderDataTable(workspace$current_lut)
                  })
     
+    #### When a lookup table type is selected, do this ####
+    observeEvent(eventExpr = input$lookup_table,
+                 handlerExpr = {
+                     # We'll only do this if it's not a custom table
+                     if (input$lookup_table == "aim") {
+                         workspace[["current_lut"]] <- workspace$aim_lut
+                     } else if (input$lookup_table == "usda_plants") {
+                         workspace[["current_lut"]] <- workspace$usda_lut
+                     } else if (!is.null(workspace$custom_lut) & input$lookup_table == "custom") {
+                         workspace[["current_lut"]] <- workspace$custom_lut
+                     }
+                 })
     #### When the search button is pressed, do this ####
     observeEvent(eventExpr = input$search_button,
                  handlerExpr = {
