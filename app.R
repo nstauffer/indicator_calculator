@@ -1,6 +1,8 @@
 library(shiny)
 library(terradactyl)
 
+options(shiny.maxRequestSize = 30*1024^2)
+
 #### UI ####
 # Define UI for application that draws a histogram
 ui <- fluidPage(
