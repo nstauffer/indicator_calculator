@@ -248,7 +248,7 @@ server <- function(input, output, session) {
                  })
     
     
-    ##### Download handler for the .zip file created with plots ####
+    #### Download handler for the calculation results ####
     output$downloadData <- downloadHandler(
         filename = function() {
             paste0("indicator_results_",
