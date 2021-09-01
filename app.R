@@ -183,9 +183,9 @@ server <- function(input, output, session) {
                  handlerExpr = {
                      # Build a string to parse
                      # This is because the pct_cover_* functions take bare variable names
-                     # var_string <- paste0(input$grouping_vars,
-                     #                      collapse = ", ")
-                     var_string <- ""
+                     var_string <- paste0(input$grouping_vars,
+                                          collapse = ", ")
+                     
                      
                      argument_string <- paste0("lpi_tall = workspace$current_data, tall = ",
                                                switch(input$output_format,
