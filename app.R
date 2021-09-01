@@ -342,6 +342,15 @@ server <- function(input, output, session) {
         content = function(file) {
             file.copy(paste0(workspace$temp_directory, "/results.csv"), file)
         })
+    
+    #### Download handler for the lookup table ####
+    output$download_lut <- downloadHandler(
+        filename = function() {
+            paste0("code_lookup_table.csv")
+        },
+        content = function(file) {
+            file.copy(paste0(workspace$temp_directory, "/code_lookup_table.csv"), file)
+        })
 }
 
 # Run the application 
