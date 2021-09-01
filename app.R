@@ -63,9 +63,9 @@ ui <- fluidPage(
                          choices = c("Tall" = "tall",
                                      "Wide" = "wide"),
                          selected = "wide"),
-            conditionalPanel(condition = "input.search_button >= 1",
-                             actionButton(inputId = "calculate_button",
-                                          label = "Calculate!")),
+            
+            actionButton(inputId = "calculate_button",
+                         label = "Calculate!"),
             
             # Only show if there are results to download
             conditionalPanel(condition = "input.calculate_button >= 1",
@@ -330,85 +330,88 @@ server <- function(input, output, session) {
     #### When the calculate button is pressed, do this ####
     observeEvent(eventExpr = input$calculate_button,
                  handlerExpr = {
-                     # Build a string to parse
-                     # This is because the pct_cover_* functions take bare variable names
-                     var_string <- paste0(input$grouping_vars,
-                                          collapse = ", ")
+                     if (!is.null(input$current_data)) {
+                         # Build a string to parse
+                         # This is because the pct_cover_* functions take bare variable names
+                         var_string <- paste0(input$grouping_vars,
+                                              collapse = ", ")
+                         
+                         
+                         argument_string <- paste0("lpi_tall = workspace$current_data, tall = ",
+                                                   switch(input$output_format,
+                                                          wide = {"FALSE"},
+                                                          tall = {"TRUE"}),
+                                                   ", by_line = FALSE, ")
+                         
+                         command_string <- switch(input$indicator_type,
+                                                  "first_hit" = {
+                                                      gsub(paste0("pct_cover(hit = 'first', ",
+                                                                  argument_string,
+                                                                  var_string,
+                                                                  ")"),
+                                                           pattern = ", )$",
+                                                           replacement = ")")
+                                                  },
+                                                  "any_hit" = {
+                                                      gsub(paste0("pct_cover(hit = 'any', ",
+                                                                  argument_string,
+                                                                  var_string,
+                                                                  ")"),
+                                                           pattern = ", )$",
+                                                           replacement = ")")
+                                                  },
+                                                  "species_first_hit" = {
+                                                      gsub(paste0("pct_cover_species(hit = 'first', ",
+                                                                  argument_string,
+                                                                  ")"),
+                                                           pattern = ", )$",
+                                                           replacement = ")")
+                                                  },
+                                                  "species_any_hit" = {
+                                                      gsub(paste0("pct_cover_species(hit = 'any', ",
+                                                                  argument_string,
+                                                                  ")"),
+                                                           pattern = ", )$",
+                                                           replacement = ")")
+                                                  },
+                                                  "between_plant" = {
+                                                      gsub(paste0("pct_cover_between_plant(",
+                                                                  argument_string,
+                                                                  ")"),
+                                                           pattern = ", )$",
+                                                           replacement = ")")
+                                                  },
+                                                  "bare_soil" = {
+                                                      gsub(paste0("pct_cover_bare_soil(",
+                                                                  argument_string,
+                                                                  ")"),
+                                                           pattern = ", )$",
+                                                           replacement = ")")
+                                                  },
+                                                  "litter" = {
+                                                      gsub(paste0("pct_cover_litter(",
+                                                                  argument_string,
+                                                                  ")"),
+                                                           pattern = ", )$",
+                                                           replacement = ")")
+                                                  })
+                         message(paste0("Command string is:", command_string))
+                         workspace$results <- eval(parse(text = command_string))
+                         
+                         # Render the results
+                         output$results_table <- renderDataTable(workspace$results)
+                         
+                         # Write the results in case they want to doanload them
+                         write.csv(x = workspace$results,
+                                   file = paste0(workspace$temp_directory,
+                                                 "/results.csv"),
+                                   row.names = FALSE)
+                         
+                         updateTabsetPanel(session = session,
+                                           inputId = "maintabs",
+                                           "Results")
+                     }
                      
-                     
-                     argument_string <- paste0("lpi_tall = workspace$current_data, tall = ",
-                                               switch(input$output_format,
-                                                      wide = {"FALSE"},
-                                                      tall = {"TRUE"}),
-                                               ", by_line = FALSE, ")
-                     
-                     command_string <- switch(input$indicator_type,
-                                              "first_hit" = {
-                                                  gsub(paste0("pct_cover(hit = 'first', ",
-                                                              argument_string,
-                                                              var_string,
-                                                              ")"),
-                                                       pattern = ", )$",
-                                                       replacement = ")")
-                                              },
-                                              "any_hit" = {
-                                                  gsub(paste0("pct_cover(hit = 'any', ",
-                                                              argument_string,
-                                                              var_string,
-                                                              ")"),
-                                                       pattern = ", )$",
-                                                       replacement = ")")
-                                              },
-                                              "species_first_hit" = {
-                                                  gsub(paste0("pct_cover_species(hit = 'first', ",
-                                                              argument_string,
-                                                              ")"),
-                                                       pattern = ", )$",
-                                                       replacement = ")")
-                                              },
-                                              "species_any_hit" = {
-                                                  gsub(paste0("pct_cover_species(hit = 'any', ",
-                                                              argument_string,
-                                                              ")"),
-                                                       pattern = ", )$",
-                                                       replacement = ")")
-                                              },
-                                              "between_plant" = {
-                                                  gsub(paste0("pct_cover_between_plant(",
-                                                              argument_string,
-                                                              ")"),
-                                                       pattern = ", )$",
-                                                       replacement = ")")
-                                              },
-                                              "bare_soil" = {
-                                                  gsub(paste0("pct_cover_bare_soil(",
-                                                              argument_string,
-                                                              ")"),
-                                                       pattern = ", )$",
-                                                       replacement = ")")
-                                              },
-                                              "litter" = {
-                                                  gsub(paste0("pct_cover_litter(",
-                                                              argument_string,
-                                                              ")"),
-                                                       pattern = ", )$",
-                                                       replacement = ")")
-                                              })
-                     message(paste0("Command string is:", command_string))
-                     workspace$results <- eval(parse(text = command_string))
-                     
-                     # Render the results
-                     output$results_table <- renderDataTable(workspace$results)
-                     
-                     # Write the results in case they want to doanload them
-                     write.csv(x = workspace$results,
-                               file = paste0(workspace$temp_directory,
-                                             "/results.csv"),
-                               row.names = FALSE)
-                     
-                     updateTabsetPanel(session = session,
-                                       inputId = "maintabs",
-                                       "Results")
                  })
     
     
