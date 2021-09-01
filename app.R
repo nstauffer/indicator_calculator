@@ -144,6 +144,61 @@ server <- function(input, output, session) {
                          workspace[["current_lut"]] <- workspace$custom_lut
                      }
                  })
+    
+    #### When the lookup table or raw data is updated, do this ####
+    observeEvent(eventExpr = list(workspace$current_lut,
+                                  workspace$raw_data),
+                 handlerExpr = {
+                     # Only proceed if there are data already
+                     if (!is.null(workspace[["raw_data"]])) {
+                         current_data <- workspace$raw_data
+                         current_data <- terradactyl::species_join(data = current_data,
+                                                                   data_code = "code",
+                                                                   species_file = workspace$current_lut,
+                                                                   species_code = "SpeciesCode",
+                                                                   species_duration = "Duration",
+                                                                   growth_habit_file = "",
+                                                                   by_state = "SpeciesState" %in% names(workspace$current_lut))
+                                                                   
+                         output$data_table <- renderDataTable(current_data)
+                         workspace$current_data <- current_data
+                         
+                         # Time to make a version of the lookup table that has the missing codes
+                         # Let's get the missing codes first
+                         missing_codes <- unique(current_data[["code"]][!(current_data[["code"]] %in% workspace$current_lut[["SpeciesCode"]])])
+                         
+                         missing_codes <- missing_codes[!(missing_codes %in% workspace$nonspecies_codes)]
+                         
+                         if (length(missing_codes) > 0) {
+                             # Make a copy of the current lookup table that we can make blank
+                             lut_missing <- workspace$current_lut[seq_len(length(missing_codes)), ]
+                             
+                             # Replace the codes in that with the missing ones
+                             lut_missing[["SpeciesCode"]] <- missing_codes
+                             
+                             # Change the values to NA for all non-code variables
+                             for (var in names(lut_missing)[!(names(lut_missing) %in% c("SpeciesCode"))]) {
+                                 lut_missing[[var]] <- NA
+                             }
+                             
+                             output$missing_codes_error <- renderText("WARNING: There are codes in your data not currently in your lookup table. Please download the current lookup table, populate values for the missing codes, and reupload the corrected table as a custom lookup table to calculate indicators correctly.")
+                             
+                             workspace$current_lut <- rbind(lut_missing,
+                                                            workspace$current_lut)
+
+                         } else {
+                             output$missing_codes_error <- renderText("")
+                         }
+                         
+                         # Write the lookup table out so it can be downloaded
+                         write.csv(workspace$current_lut,
+                                   file = paste0(workspace$temp_directory, "/code_lookup_table.csv"),
+                                   row.names = FALSE)
+                         
+                         output$current_lut_table <- renderDataTable(workspace$current_lut)
+                     } 
+                 })
+    
     #### When workspace$current_data gets updated ####
     observeEvent(eventExpr = workspace$current_data,
                  handlerExpr = {
