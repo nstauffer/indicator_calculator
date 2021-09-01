@@ -125,11 +125,30 @@ server <- function(input, output, session) {
     #### When a custom lookup table is uploaded, do this ####
     observeEvent(eventExpr = input$custom_lut,
                  handlerExpr = {
+                     message("Custom lookup table uploaded! Reading that in for you.")
                      workspace[["custom_lut"]] <- read.csv(input$custom_lut$datapath,
                                                            stringsAsFactors = FALSE)
                      
                      workspace[["current_lut"]] <- workspace$custom_lut
                      output$current_lut_table <- renderDataTable(workspace$current_lut)
+                 })
+    
+    #### When data are uploaded, do this ####
+    observeEvent(eventExpr = input$uploaded_data,
+                 handlerExpr = {
+                     message("Data set uploaded! Reading that in for you.")
+                     workspace$raw_data <- read.csv(input$uploaded_data$datapath,
+                                                    stringsAsFactors = FALSE)
+                     # Render the data to present to the user
+                     print(workspace$raw_data)
+                     workspace$display_data <- workspace$raw_data
+                     message("Rendering data table")
+                     names(workspace$raw_data)
+                     output$data_table <- renderDataTable(workspace$display_data)
+                     
+                     updateTabsetPanel(session,
+                                       inputId = "maintabs",
+                                       selected = "Data")
                  })
     
     #### When a lookup table type is selected, do this ####
@@ -208,21 +227,8 @@ server <- function(input, output, session) {
                                        choices = acceptable_vars)
                  })
     
-
-    #### When data are uploaded, do this ####
-    observeEvent(eventExpr = input$uploaded_data,
-                 handlerExpr = {
-                     workspace$raw_data <- input$uploaded_data
-                     # Render the data to present to the user
-                     print(workspace$raw_data)
-                     workspace$display_data <- workspace$raw_data
-                     message("Rendering data table")
-                     output$data_table <- renderDataTable(workspace$display_data)
-                     
-                     updateTabsetPanel(session,
-                                       inputId = "maintabs",
-                                       selected = "Data")
-                 })    
+    
+    
     
     
     #### When the search button is pressed, do this ####
