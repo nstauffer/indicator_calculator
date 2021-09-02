@@ -81,7 +81,7 @@ ui <- fluidPage(
                                  includeHTML("instructions.html")
                         ),
                         tabPanel(title = "Lookup Table",
-                                 textOutput("missing_codes_error"),
+                                 # htmlOutput("missing_codes_error"),
                                  downloadButton(outputId = 'download_lut',
                                                 label = 'Download current lookup table'),
                                  dataTableOutput("current_lut_table"),
@@ -199,6 +199,8 @@ server <- function(input, output, session) {
                          message(paste0("missing_codes has a length of ", length(missing_codes)))
                          
                          if (length(missing_codes) > 0) {
+                             message("There are codes missing from the lookup table!")
+                             output$missing_codes_error <- renderText("<p style='color:red;font-size:150%;'><b>WARNING: There are codes in your data not currently in your lookup table. Please download the current lookup table, populate values for the missing codes, and reupload the corrected table as a custom lookup table to calculate indicators correctly.</b></p>")
                              # Make a copy of the current lookup table that we can make blank
                              lut_missing <- workspace$current_lut[seq_len(length(missing_codes)), ]
                              
@@ -210,12 +212,11 @@ server <- function(input, output, session) {
                                  lut_missing[[var]] <- NA
                              }
                              
-                             output$missing_codes_error <- renderText("WARNING: There are codes in your data not currently in your lookup table. Please download the current lookup table, populate values for the missing codes, and reupload the corrected table as a custom lookup table to calculate indicators correctly.")
-                             
                              workspace$current_lut <- rbind(lut_missing,
                                                             workspace$current_lut)
                              
-                         } else {
+                         } else if (length(missing_codes) < 1) {
+                             message("Congratulations! There are no codes missing from the lookup table!")
                              output$missing_codes_error <- renderText("")
                          }
                          
