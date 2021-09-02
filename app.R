@@ -88,6 +88,7 @@ ui <- fluidPage(
                         ),
                         tabPanel(title = "Data",
                                  htmlOutput("missing_vars_error"),
+                                 htmlOutput("speciesstate_warning"),
                                  htmlOutput("query_error"),
                                  dataTableOutput("data_table")
                         ),
@@ -203,9 +204,14 @@ server <- function(input, output, session) {
                      message("Change in current_lut or raw_data detected!")
                      # Only proceed if there are data already
                      if (!is.null(workspace[["raw_data"]])) {
+                         output$speciesstate_warning <- renderText("")
                          message("There're values in raw_data. Proceeding")
                          current_data <- workspace$raw_data
                          message("Executing species_join()")
+                         
+                         if (!("SpeciesState" %in% names(current_data)) & input$lookup_table == "aim") {
+                             output$speciesstate_warning <- renderText("<p style='color:red;font-size:150%;'><b>WARNING! The AIM lookup table can only be correctly used if the data include a 'SpeciesState' variable. Please either add that information to your data or download the lookup table, pare it down to the relevant state making sure there is only one entry per species, and upload it as a custom lookup table.</b></p>")
+                         }
                          
                          current_data <- terradactyl::species_join(data = current_data,
                                                                    data_code = "code",
@@ -213,7 +219,7 @@ server <- function(input, output, session) {
                                                                    species_code = "SpeciesCode",
                                                                    species_duration = "Duration",
                                                                    growth_habit_file = "",
-                                                                   by_state = "SpeciesState" %in% names(workspace$current_lut))
+                                                                   by_state = "SpeciesState" %in% names(workspace$current_lut) & "SpeciesState" %in% names(current_data))
                          
                          output$data_table <- renderDataTable(current_data)
                          workspace$current_data <- current_data
