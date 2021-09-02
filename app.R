@@ -4,7 +4,6 @@ library(terradactyl)
 options(shiny.maxRequestSize = 30*1024^2)
 
 #### UI ####
-# Define UI for application that draws a histogram
 ui <- fluidPage(
     
     titlePanel("Indicator Calculator"),
@@ -76,7 +75,8 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
             tabsetPanel(id = "maintabs",
-                        tabPanel(title = "Instructions"
+                        tabPanel(title = "Instructions",
+                                 includeHTML("instructions.html")
                         ),
                         tabPanel(title = "Lookup Table",
                                  textOutput("missing_codes_error"),

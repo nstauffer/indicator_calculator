@@ -1,0 +1,41 @@
+---
+output:
+  html_document:
+        theme: null
+        highlight: null
+        mathjax: null
+---
+
+### 1) Upload your data or query the Landscape Data Commons directly
+You can either query data from the Landscape Data Commons with an ecological site ID (search for ecological sites on [EDIT](https://edit.jornada.nmsu.edu)) *or* upload a dataLPI results table downloaded from the [Landscape Data Commons](https://landscapedatacommons.org) as a .CSV file.
+
+
+### 2) Select or upload a species information lookup table
+You can choose one of three species information lookup table options:
+
+* The current Assessment, Inventory, and Monitoring (AIM) species information from the Terrestrial AIM Database (TerrADat). This table contains information including the growth habit, duration, noxious status, and relationship to sage-grouse. Note: This is *organized by state*. Do not use this list if your data do not contain the column "SpeciesState".
+* Species information from USDA Plants. This contains information on growth habit and duration. Note that many species in USDA Plants can be considered both annual and perennial and may belong to multiple growth habits but have been restricted to just one of each.
+* Upload custom species information. There are only two requirements: the species codes must be in a column called "SpeciesCode" and no species code may appear more than once in the table. You may add any additional columns for species characteristics.
+
+
+### 3) Check the selected lookup table for missing codes
+You can find your chosen/uploaded species information in the Lookup Table tab. Any codes in the column "SpeciesCode" that appear in the data but not the species information will have been added to the top of the table. Use the "Download current lookup table" button to download the species information, populate the appropriate values for those new codes, and use the updated table as a custom species information lookup table.
+
+
+### 4) Select the indicator to calculate
+There are seven percent cover indicator calculation options. They are:
+
+* Percent cover by custom group (any hit)
+  - Select which variables to group the results by, e.g., to calculate percent cover for perennial grasses select "GrowthHabitSub" and "Duration" to get cover results for each combination of growth habit and duration. This considers all canopy layers at each pin drop and so the percent cover values for a single plot may sum to more than 100%.
+* Percent cover by custom group (first hit)
+  - This is the same as "Percent cover by custom group (any hit)" except that the only data that are considered are the uppermost canopy record for each pin drop.
+* Percent cover by species (any hit)
+  - This is equivalent to "Percent cover by custom group (any hit)" with the grouping variable "code" but excludes any non-plant records, e.g. rock, soil, or litter hits.
+* Percent cover by species (first hit)
+  - This is equivalent to "Percent cover by species (any hit)" except that the only data that are considered are the uppermost canopy record for each pin drop.
+* Percent cover (between plant)
+  - This will calculate the percent cover for all non-plant records (e.g. rock, litter) which do not have plant records in the canopy above them.
+* Percent cover (bare soil)
+  - This will calculate the percent cover for only soil records which do not have plant records in the canopy above them.
+* Percent cover (litter)
+  - This will calculate the percent cover for only litter records.
