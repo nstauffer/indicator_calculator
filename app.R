@@ -87,7 +87,7 @@ ui <- fluidPage(
                                  dataTableOutput("current_lut_table"),
                         ),
                         tabPanel(title = "Data",
-                                 textOutput("query_error"),
+                                 htmlOutput("query_error"),
                                  dataTableOutput("data_table")
                         ),
                         tabPanel(title = "Results",
@@ -301,6 +301,14 @@ server <- function(input, output, session) {
                          workspace$queried_ecosites <- unique(query_results$EcologicalSiteId)
                          workspace$missing_ecosites <- search_string_vector[!(search_string_vector %in% workspace$queried_ecosites)]
                          
+                         if (length(workspace$missing_ecosites) > 0) {
+                             message("There was an error with the query!")
+                             output$query_error <- renderText(paste("<p style='color:red;font-size:150%;'><b>WARNING! The following are not valid ecological site IDs recognized by EDIT:<br>",
+                                                                    paste(workspace$missing_ecosites,
+                                                                          collapse = ", "),
+                                                                    "</b></p>"))
+                         }
+                         
                          # Only keep going if there are results!!!!
                          if (length(query_results) > 0) {
                              message("Correcting numeric variables")
@@ -332,9 +340,10 @@ server <- function(input, output, session) {
                              
                              
                          } else {
-                             output$query_error <- renderText(paste("The following are not valid ecological site IDs recognized by EDIT:",
-                                                                    paste(workspace$missing_ecosites,
-                                                                          collapse = ", ")))
+                             # output$query_error <- renderText(paste("The following is/are not valid ecological site ID(s) recognized by EDIT:",
+                             #                                        paste(workspace$missing_ecosites,
+                             #                                              collapse = ", ")))
+                             workspace$raw_data <- NULL
                          }
                          
                          # Render the data to present to the user
