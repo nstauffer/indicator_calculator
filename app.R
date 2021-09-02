@@ -90,6 +90,7 @@ ui <- fluidPage(
                                  htmlOutput("missing_vars_error"),
                                  htmlOutput("speciesstate_warning"),
                                  htmlOutput("query_error"),
+                                 htmlOutput("missing_codes_warning"),
                                  dataTableOutput("data_table")
                         ),
                         tabPanel(title = "Results",
@@ -206,6 +207,8 @@ server <- function(input, output, session) {
                      if (!is.null(workspace[["raw_data"]])) {
                          output$speciesstate_warning <- renderText("")
                          message("There're values in raw_data. Proceeding")
+                         # Add a warning to check the lookup table
+                         output$missing_codes_warning <- renderText("<p style='color:red;font-size:120%;'><b>Please check the Lookup Table tab to confirm that there are no codes missing attributes. If there are, please download, correct, and upload the lookup table.</b></p>")
                          current_data <- workspace$raw_data
                          message("Executing species_join()")
                          
