@@ -378,20 +378,28 @@ server <- function(input, output, session) {
                          
                          command_string <- switch(input$indicator_type,
                                                   "first_hit" = {
-                                                      gsub(paste0("pct_cover(hit = 'first', ",
-                                                                  argument_string,
-                                                                  var_string,
-                                                                  ")"),
-                                                           pattern = ", )$",
-                                                           replacement = ")")
+                                                      if (!is.null(input$grouping_vars)) {
+                                                          gsub(paste0("pct_cover(hit = 'first', ",
+                                                                      argument_string,
+                                                                      var_string,
+                                                                      ")"),
+                                                               pattern = ", )$",
+                                                               replacement = ")")
+                                                      } else {
+                                                          "NULL"
+                                                      }
                                                   },
                                                   "any_hit" = {
-                                                      gsub(paste0("pct_cover(hit = 'any', ",
-                                                                  argument_string,
-                                                                  var_string,
-                                                                  ")"),
-                                                           pattern = ", )$",
-                                                           replacement = ")")
+                                                      if (!is.null(input$grouping_vars)) {
+                                                          gsub(paste0("pct_cover(hit = 'any', ",
+                                                                      argument_string,
+                                                                      var_string,
+                                                                      ")"),
+                                                               pattern = ", )$",
+                                                               replacement = ")")
+                                                      } else {
+                                                          "NULL"
+                                                      }
                                                   },
                                                   "species_first_hit" = {
                                                       gsub(paste0("pct_cover_species(hit = 'first', ",
