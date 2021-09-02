@@ -25,6 +25,8 @@ ui <- fluidPage(
                       label = "Upload data",
                       accept = "CSV"),
             
+            hr(),
+            
             selectInput(inputId = "lookup_table",
                         label = "Species information lookup table",
                         choices = c("AIM" = "aim",
@@ -121,6 +123,7 @@ server <- function(input, output, session) {
                                                      "S", "LC", "M", "D", "W", "R",
                                                      "CY", "EL", "BY", "BR"))
     
+    
     #### When a custom lookup table is uploaded, do this ####
     observeEvent(eventExpr = input$custom_lut,
                  handlerExpr = {
@@ -153,6 +156,7 @@ server <- function(input, output, session) {
     #### When a lookup table type is selected, do this ####
     observeEvent(eventExpr = input$lookup_table,
                  handlerExpr = {
+                     message("Change in lookup table type selection detected!")
                      # We'll only do this if it's not a custom table
                      if (input$lookup_table == "aim") {
                          workspace[["current_lut"]] <- workspace$aim_lut
@@ -167,9 +171,13 @@ server <- function(input, output, session) {
     observeEvent(eventExpr = list(workspace$current_lut,
                                   workspace$raw_data),
                  handlerExpr = {
+                     message("Change in current_lut or raw_data detected!")
                      # Only proceed if there are data already
                      if (!is.null(workspace[["raw_data"]])) {
+                         message("There're values in raw_data. Proceeding")
                          current_data <- workspace$raw_data
+                         message("Executing species_join()")
+                         
                          current_data <- terradactyl::species_join(data = current_data,
                                                                    data_code = "code",
                                                                    species_file = workspace$current_lut,
@@ -186,6 +194,8 @@ server <- function(input, output, session) {
                          missing_codes <- unique(current_data[["code"]][!(current_data[["code"]] %in% workspace$current_lut[["SpeciesCode"]])])
                          
                          missing_codes <- missing_codes[!(missing_codes %in% workspace$nonspecies_codes)]
+                         
+                         message(paste0("missing_codes has a length of ", length(missing_codes)))
                          
                          if (length(missing_codes) > 0) {
                              # Make a copy of the current lookup table that we can make blank
@@ -220,6 +230,7 @@ server <- function(input, output, session) {
     #### When workspace$current_data gets updated ####
     observeEvent(eventExpr = workspace$current_data,
                  handlerExpr = {
+                     message("Change detected in current_data. Updating grouping_vars!")
                      all_vars <- names(workspace$current_data)
                      acceptable_vars <- all_vars[!(all_vars %in% workspace$illegal_grouping_vars)]
                      updateSelectInput(inputId = "grouping_vars",
@@ -233,6 +244,7 @@ server <- function(input, output, session) {
     #### When the search button is pressed, do this ####
     observeEvent(eventExpr = input$search_button,
                  handlerExpr = {
+                     message("Search button has been pressed!")
                      output$query_error <- renderText("")
                      # Only do anything if there's an search string
                      if (input$search_string != "") {
@@ -315,6 +327,8 @@ server <- function(input, output, session) {
                              
                              # Put it in the workspace list
                              workspace$raw_data <- data
+                             
+                             
                          } else {
                              output$query_error <- renderText(paste("The following are not valid ecological site IDs recognized by EDIT:",
                                                                     paste(workspace$missing_ecosites,
@@ -337,6 +351,8 @@ server <- function(input, output, session) {
     observeEvent(eventExpr = input$calculate_button,
                  handlerExpr = {
                      if (!is.null(input$current_data)) {
+                     message("Calculate button pressed!")
+                     print(input$grouping_vars)
                          # Build a string to parse
                          # This is because the pct_cover_* functions take bare variable names
                          var_string <- paste0(input$grouping_vars,
@@ -402,6 +418,7 @@ server <- function(input, output, session) {
                                                            replacement = ")")
                                                   })
                          message(paste0("Command string is:", command_string))
+                         message("Attempting indicator calculation!")
                          workspace$results <- eval(parse(text = command_string))
                          
                          # Render the results
