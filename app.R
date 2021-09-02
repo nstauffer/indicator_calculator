@@ -21,8 +21,9 @@ ui <- fluidPage(
                       placeholder = "R036XB006NM"),
             actionButton(inputId = "search_button",
                          label = "Search Landscape Data Commons!"),
+            helpText("OR"),
             fileInput(inputId = "uploaded_data",
-                      label = "Upload data",
+                      label = "Upload data from the Landscape Data Commons",
                       accept = "CSV"),
             
             hr(),
