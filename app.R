@@ -43,10 +43,10 @@ ui <- fluidPage(
             
             selectInput(inputId = "indicator_type",
                         label = "Indicator calculation",
-                        choices = c("Percent cover by custom groups (first hit)" = "first_hit",
-                                    "Percent cover by custom groups (any hit)" = "any_hit",
-                                    "Percent cover by species (first hit)" = "species_first_hit",
+                        choices = c("Percent cover by custom groups (any hit)" = "any_hit",
+                                    "Percent cover by custom groups (first hit)" = "first_hit",
                                     "Percent cover by species (any hit)" = "species_any_hit",
+                                    "Percent cover by species (first hit)" = "species_first_hit",
                                     "Percent cover (between plant)" = "between_plant",
                                     "Percent cover (bare soil)" = "bare_soil",
                                     "Percent cover (litter)" = "litter")),
