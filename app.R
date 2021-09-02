@@ -87,6 +87,7 @@ ui <- fluidPage(
                                  dataTableOutput("current_lut_table"),
                         ),
                         tabPanel(title = "Data",
+                                 htmlOutput("missing_vars_error"),
                                  htmlOutput("query_error"),
                                  dataTableOutput("data_table")
                         ),
@@ -111,6 +112,11 @@ server <- function(input, output, session) {
                                 usda_lut = read.csv("usda_plants_characteristics_lookup.csv",
                                                     stringsAsFactors = FALSE),
                                 required_data_vars = c("PrimaryKey", "layer", "code"),
+                                minimum_data_vars = c("PrimaryKey",
+                                                      "LineKey",
+                                                      "PointNbr",
+                                                      "layer",
+                                                      "code"),
                                 illegal_grouping_vars = c("PrimaryKey", "DBKey", 
                                                           "Latitude_NAD83", "Longitude_NAD83",
                                                           "DateEstablished", "DateLoadedInDb", "ProjectName", 
@@ -140,14 +146,36 @@ server <- function(input, output, session) {
     observeEvent(eventExpr = input$uploaded_data,
                  handlerExpr = {
                      message("Data set uploaded! Reading that in for you.")
+                     output$missing_vars_error <- renderText("")
                      workspace$raw_data <- read.csv(input$uploaded_data$datapath,
                                                     stringsAsFactors = FALSE)
-                     # Render the data to present to the user
-                     print(workspace$raw_data)
-                     workspace$display_data <- workspace$raw_data
-                     message("Rendering data table")
-                     names(workspace$raw_data)
-                     output$data_table <- renderDataTable(workspace$display_data)
+                     
+                     # Check for all required variables
+                     workspace$missing_required_vars <- workspace$minimum_data_vars[!(workspace$minimum_data_vars %in% names(workspace$raw_data))]
+                     message(paste0("The following required variables are missing: ",
+                                    paste(workspace$missing_required_vars,
+                                          collapse = ", ")))
+                     if (length(workspace$missing_required_vars) > 0) {
+                         message("Missing variables. Warning the user!")
+                         output$missing_vars_error <- renderText(paste0("<p style='color:red;font-size:150%'><b>The following required variables are missing from the uploaded data:<br>",
+                                                                        paste(workspace$missing_required_vars,
+                                                                              collapse = ", "),
+                                                                        "</b></p>"))
+                         message("Nullifying workspace$raw_data")
+                         
+                         workspace$raw_data <- NULL
+                         output$data_table <- NULL
+                     } else {
+                         message("No missing required variables. Moving ahead!")
+                         output$missing_vars_error <- renderText("")
+                         workspace$display_data <- workspace$raw_data
+                         message("Rendering data table")
+                         names(workspace$raw_data)
+                         output$data_table <- renderDataTable(workspace$display_data)
+                     }
+                     
+                     # No error!
+                     output$query_error <- renderText("")
                      
                      updateTabsetPanel(session,
                                        inputId = "maintabs",
