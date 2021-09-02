@@ -398,9 +398,9 @@ server <- function(input, output, session) {
     #### When the calculate button is pressed, do this ####
     observeEvent(eventExpr = input$calculate_button,
                  handlerExpr = {
-                     if (!is.null(input$current_data)) {
                      message("Calculate button pressed!")
                      print(input$grouping_vars)
+                     if (!is.null(workspace$current_data)) {
                          # Build a string to parse
                          # This is because the pct_cover_* functions take bare variable names
                          var_string <- paste0(input$grouping_vars,
