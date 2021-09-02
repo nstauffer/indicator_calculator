@@ -11,17 +11,16 @@ ui <- fluidPage(
     # Sidebar
     sidebarLayout(
         sidebarPanel(
-            selectInput(inputId = "search_type",
-                        label = "LDC search method",
-                        choices = c("Project Key", "Ecological Site ID"),
-                        selected = "Ecological Site ID"),
+            # selectInput(inputId = "search_type",
+            #             label = "LDC search method",
+            #             choices = c("Ecological Site ID", "State", ),
+            #             selected = "Ecological Site ID"),
             textInput(inputId = "search_string",
-                      label = "Search string",
+                      label = "Ecological Site ID",
                       value = "",
                       placeholder = "R036XB006NM"),
             actionButton(inputId = "search_button",
-                         label = "Search!"),
-            
+                         label = "Search Landscape Data Commons!"),
             fileInput(inputId = "uploaded_data",
                       label = "Upload data",
                       accept = "CSV"),
@@ -248,7 +247,8 @@ server <- function(input, output, session) {
                          
                          query_results_list <- lapply(X = search_string_vector,
                                                       FUN = function(X,
-                                                                     search_type = input$search_type){
+                                                                     # search_type = input$search_type){
+                                                                     search_type = "Ecological Site ID"){
                                                           # Build the query
                                                           query <- switch(search_type,
                                                                           "Project Key" = {
