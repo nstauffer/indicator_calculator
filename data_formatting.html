@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>data_formatting.knit</title>
+
+<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+      .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+
+
+
+<div id="data-formatting" class="section level2">
+<h2>Data Formatting</h2>
+<p>This tool allows the user to upload two different data sets: raw line-point intercept (LPI) data collected according to the method laid out in the <a href="https://www.landscapetoolbox.org/manuals/monitoring-manual/"><em>Monitoring Manual for Grassland, Shrubland, and Savanna Ecosystems</em></a> and a species information lookup table. While there is some flexibility in both cases, the tool will only understand specifically-formatted CSV (Comma Separated Values) files.</p>
+<div id="lpi-data" class="section level3">
+<h3>LPI Data</h3>
+<div id="minimum-data-requirements" class="section level4">
+<h4>Minimum data requirements</h4>
+<p>Uploaded LPI data <em>must</em> be in a tall (i.e., one observation per row) format and <em>must</em> contain the following columns/variables (although it may have many more):</p>
+<ul>
+<li>PrimaryKey
+<ul>
+<li>This is the identifier for the landscape sampling location the data come from, i.e. the plot. All records from a single plot must have the same value in this column and each plot must have its own unique value.</li>
+</ul></li>
+<li>LineKey
+<ul>
+<li>This is the identifier for each transect sampled on a plot. All records from the same transect must have the same value in this column, but it only needs to be unique within a shared PrimaryKey value e.g., the LineKey values 1, 2, and 3 may appear associated with each PrimaryKey value. On an AIM plot there will typically be three transects, although this can vary. Even if you only have one transect per plot, this is still required information.</li>
+</ul></li>
+<li>PointNbr
+<ul>
+<li>This is the identifier for the specific location on a transect where data were recorded, i.e. a pin drop. Conventionally these are accessional, starting with 1 for the records from the first pin drop, 2 for the second, and so on. Each value will be shared by all records from the same sampling point on a transect (which also share a PrimaryKey and LineKey). Like LineKey, this does not need to be globally unique, but must be unique to each pin drop for each combination of PrimaryKey and LineKey, e.g. every combination of PrimaryKey and LineKey may have records with a PointNbr value of 1.</li>
+</ul></li>
+<li>layer
+<ul>
+<li>This is the identifier for which layer of canopy/ground the record is from. There are only nine valid values for this variable: TopCanopy, Lower1, Lower2, Lower3, Lower4, Lower5, Lower6, Lower7, and SoilSurface. The first <em>canopy</em> record for each PointNbr value (that is, at each pin drop) must have the value TopCanopy and subsequent <em>canopy</em> records must use in order Lower1 through Lower7 e.g., at a pin drop with four canopy records, the values would be TopCanopy, Lower1, Lower2, and Lower3. The final record, i.e., the one with a surface value, must always contain use the value SoilSurface even if the record is not specifically for soil.</li>
+</ul></li>
+<li>code
+<ul>
+<li>This is the record of the value for what the LPI pin touched. AIM data use species codes from <a href="https://plants.usda.gov">USDA Plants</a> in addition to non-plant codes found in the <a href="https://www.landscapetoolbox.org/manuals/monitoring-manual/"><em>Monitoring Manual for Grassland, Shrubland, and Savanna Ecosystems</em></a>. These are the values that will be found in data from the LDC. If you are uploading data from another source, you may technically use any codes, however you will need to upload a custom species information lookup table containing those codes.</li>
+</ul></li>
+</ul>
+</div>
+<div id="optional-data" class="section level4">
+<h4>Optional data</h4>
+<ul>
+<li>SpeciesState
+<ul>
+<li>This is the state the record was recorded in, e.g., NM, CO, WY. This makes the data compatible with the AIM species information lookup table which contains one record for each state a species occurs in along with the data for that species in that state, which can vary state-to-state. Without this, using the AIM species information lookup table will result in incorrect indicator calculations.</li>
+</ul></li>
+<li>Any additional variables
+<ul>
+<li>If you intend to calculate indicators based on grouping variables related to the sampling location (e.g. ecological site ID, county, grazing allotment) then those columns must be present. The variable/column names must not include whitespace or non-alphanumeric characters. Best practice is to populate each variable fully for all observations, but if your variable does not apply to all observations you may leave those values empty.</li>
+</ul></li>
+</ul>
+<p>The easiest way to ensure that uploaded data are in the correct format is to use data obtained from the <a href="https://landscapedatacommons.org">Landscape Data Commons</a> (LDC). Any data downloaded from the LDC from the dataLPI table will be correctly formatted for use with this tool. Note that data obtained this way <em>will not</em> have the variable “SpeciesState” and will therefore be incompatible with the AIM species information lookup table unless the user adds that variable and populates it with state information (e.g. NM for New Mexico).</p>
+</div>
+</div>
+<div id="species-information-lookup-table" class="section level3">
+<h3>Species Information Lookup Table</h3>
+<div id="minimum-data-requirements-1" class="section level4">
+<h4>Minimum data requirements</h4>
+<ul>
+<li>GrowthHabitSub
+<ul>
+<li>This is the growth habit of the species. Typically these are: Forb, Graminoid, Sedge, Shrub SubShrub, Succulent, Tree, or NonVascular. The only requirement is that they are both present for all species and correct for your intended use.</li>
+</ul></li>
+<li>Duration
+<ul>
+<li>This is the duration of the species. Typically these are: Annual or Perennial. The only requirement is that they are both present for all species and correct for your intended use.</li>
+</ul></li>
+</ul>
+</div>
+<div id="optional-data-1" class="section level4">
+<h4>Optional data</h4>
+<ul>
+<li>SpeciesState
+<ul>
+<li>This is the state the plant information is relevant for, e.g., NM, CO, WY. Species characteristics may vary regionally (e.g. annual in some places while perennial in others) and this allows for a species to appear in the lookup table multiple times, once per state it occurs in. If your data also have a SpeciesState variable, then it will be considered when the lookup table is joined to the data. Only include this if your data also have a SpeciesState variable or else the joining process will result in duplications and incorrect indicator calculations.</li>
+</ul></li>
+<li>Any additional variables
+<ul>
+<li>If you intend to calculate indicators based on grouping variables related to the sampling location (e.g. ecological site ID, county, grazing allotment) then those columns must be present. The variable/column names must not include whitespace or non-alphanumeric characters. Best practice is to populate each variable fully for all species, but if your variable does not apply to all species you may leave those values empty.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+
+</body>
+</html>

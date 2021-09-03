@@ -95,6 +95,9 @@ ui <- fluidPage(
                         ),
                         tabPanel(title = "Results",
                                  dataTableOutput("results_table")
+                        ),
+                        tabPanel(title = "Upload formatting info",
+                                 includeHTML("data_formatting.html")
                         )
             )
         )
