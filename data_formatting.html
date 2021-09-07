@@ -68,13 +68,95 @@
 </ul></li>
 <li>layer
 <ul>
-<li>This is the identifier for which layer of canopy/ground the record is from. There are only nine valid values for this variable: TopCanopy, Lower1, Lower2, Lower3, Lower4, Lower5, Lower6, Lower7, and SoilSurface. The first <em>canopy</em> record for each PointNbr value (that is, at each pin drop) must have the value TopCanopy and subsequent <em>canopy</em> records must use in order Lower1 through Lower7 e.g., at a pin drop with four canopy records, the values would be TopCanopy, Lower1, Lower2, and Lower3. The final record, i.e., the one with a surface value, must always contain use the value SoilSurface even if the record is not specifically for soil.</li>
+<li>This is the identifier for which layer of canopy/ground the record is from. There are only nine valid values for this variable: TopCanopy, Lower1, Lower2, Lower3, Lower4, Lower5, Lower6, Lower7, and SoilSurface. The first <em>canopy</em> record for each PointNbr value (that is, at each pin drop) must have the value TopCanopy and subsequent <em>canopy</em> records must use in order Lower1 through Lower7 e.g., at a pin drop with four canopy records, the values would be TopCanopy, Lower1, Lower2, and Lower3. The final record, i.e., the one with a surface value, must always use the value SoilSurface even if the record is not specifically for soil. Every PointNbr value must have a TopCanopy record (either the relevant code or “None” if there was no canopy&quot;) and a SoilSurface record.</li>
 </ul></li>
 <li>code
 <ul>
-<li>This is the record of the value for what the LPI pin touched. AIM data use species codes from <a href="https://plants.usda.gov">USDA Plants</a> in addition to non-plant codes found in the <a href="https://www.landscapetoolbox.org/manuals/monitoring-manual/"><em>Monitoring Manual for Grassland, Shrubland, and Savanna Ecosystems</em></a>. These are the values that will be found in data from the LDC. If you are uploading data from another source, you may technically use any codes, however you will need to upload a custom species information lookup table containing those codes.</li>
+<li>This is the record of the value for what the LPI pin touched. AIM data use species codes from <a href="https://plants.usda.gov">USDA Plants</a> in addition to non-plant codes found in the <a href="https://www.landscapetoolbox.org/manuals/monitoring-manual/"><em>Monitoring Manual for Grassland, Shrubland, and Savanna Ecosystems</em></a>. These are the values that will be found in data from the Landscape Data Commons. If you are uploading data from another source, you may technically use any codes, however you will need to upload a custom species information lookup table containing those codes.</li>
 </ul></li>
 </ul>
+</div>
+<div id="example" class="section level4">
+<h4>Example</h4>
+<p>This table shows a correctly formatted data table. It contains the records for the first three pin drops (each drop has a unique PointNbr value) on a transect (each transect has a unique LineKey value) at a plot (each plot has a unique PrimaryKey value). According to this table, the first pin drop touched <em>Artemisia tridentata</em> (species code ARTR2 in USDA Plants) then no other species before resting on soil at the surface. The second pin drop touched ARTR2 then <em>Bromus tectorum</em> (BRTE) before resting on a rock at the surface. The third pin drop touched no plants, only soil.</p>
+<table>
+<thead>
+<tr class="header">
+<th>PrimaryKey</th>
+<th>LineKey</th>
+<th>PointNbr</th>
+<th>layer</th>
+<th></th>
+<th>code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>TopCanopy</td>
+<td></td>
+<td>ARTR2</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>SoilSurface</td>
+<td></td>
+<td>S</td>
+</tr>
+<tr class="odd">
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>TopCanopy</td>
+<td></td>
+<td>ARTR2</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>Layer1</td>
+<td></td>
+<td>BRTE</td>
+</tr>
+<tr class="odd">
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>SoilSurface</td>
+<td></td>
+<td>R</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>1</td>
+<td>3</td>
+<td>TopCanopy</td>
+<td></td>
+<td>None</td>
+</tr>
+<tr class="odd">
+<td>1</td>
+<td>1</td>
+<td>3</td>
+<td>SoilSurface</td>
+<td></td>
+<td>S</td>
+</tr>
+<tr class="even">
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td></td>
+<td>…</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="optional-data" class="section level4">
 <h4>Optional data</h4>
@@ -96,9 +178,13 @@
 <div id="minimum-data-requirements-1" class="section level4">
 <h4>Minimum data requirements</h4>
 <ul>
+<li>SpeciesCode
+<ul>
+<li>This is the species code. These values should match the codes from <a href="https://plants.usda.gov">USDA Plants</a>. Your data may have additional codes not in USDA Plants (e.g., codes for unknown species) which will also need to be included. Each code should appear only once <em>unless</em> your data include SpeciesState in which case you may include SpeciesState in this lookup table (see below) and have one entry for each time a code appears associated with a different state.</li>
+</ul></li>
 <li>GrowthHabitSub
 <ul>
-<li>This is the growth habit of the species. Typically these are: Forb, Graminoid, Sedge, Shrub SubShrub, Succulent, Tree, or NonVascular. The only requirement is that they are both present for all species and correct for your intended use.</li>
+<li>This is the growth habit of the species. Typically these are: Forb, Graminoid, Sedge, Shrub, SubShrub, Succulent, Tree, or NonVascular. The only requirement is that they are both present for all species and correct for your intended use.</li>
 </ul></li>
 <li>Duration
 <ul>
@@ -111,11 +197,11 @@
 <ul>
 <li>SpeciesState
 <ul>
-<li>This is the state the plant information is relevant for, e.g., NM, CO, WY. Species characteristics may vary regionally (e.g. annual in some places while perennial in others) and this allows for a species to appear in the lookup table multiple times, once per state it occurs in. If your data also have a SpeciesState variable, then it will be considered when the lookup table is joined to the data. Only include this if your data also have a SpeciesState variable or else the joining process will result in duplications and incorrect indicator calculations.</li>
+<li>This is the state the plant information is relevant for, e.g., NM, CO, WY. Species characteristics may vary regionally (e.g. annual in some places while perennial in others) and this allows for a species to appear in the lookup table multiple times, once per state it occurs in. There must be a record for every state that the species occurs in, even if the species properties are identical between multiple states. If your data also have a SpeciesState variable, then it will be considered when the lookup table is joined to the data. Only include this if your data also have a SpeciesState variable or else the joining process will result in duplications and incorrect indicator calculations.</li>
 </ul></li>
 <li>Any additional variables
 <ul>
-<li>If you intend to calculate indicators based on grouping variables related to the sampling location (e.g. ecological site ID, county, grazing allotment) then those columns must be present. The variable/column names must not include whitespace or non-alphanumeric characters. Best practice is to populate each variable fully for all species, but if your variable does not apply to all species you may leave those values empty.</li>
+<li>If you intend to calculate indicators based on grouping variables related to other characteristics (e.g. noxious or invasive status, seasonality, wildlife use) then those columns must be present. The variable/column names must not include whitespace or non-alphanumeric characters. Best practice is to populate each variable fully for all species, but if your variable does not apply to all species you may leave those values empty.</li>
 </ul></li>
 </ul>
 </div>
