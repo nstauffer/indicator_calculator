@@ -11,6 +11,10 @@ ui <- fluidPage(
     # Sidebar
     sidebarLayout(
         sidebarPanel(
+            selectInput(inputId = "indicator_class",
+                        label = "Select which type of indicator to calculate",
+                        choices = c("Cover" = "lpi",
+                                    "Height" = "height")),
             # selectInput(inputId = "search_type",
             #             label = "LDC search method",
             #             choices = c("Ecological Site ID", "State", ),
@@ -41,16 +45,18 @@ ui <- fluidPage(
                                        label = "Upload custom lookup table",
                                        accept = "CSV")),
             
-            selectInput(inputId = "indicator_type",
-                        label = "Indicator calculation",
-                        choices = c("Percent cover by custom groups (any hit)" = "any_hit",
-                                    "Percent cover by custom groups (first hit)" = "first_hit",
-                                    "Percent cover by species (any hit)" = "species_any_hit",
-                                    "Percent cover by species (first hit)" = "species_first_hit",
-                                    "Percent cover (between plant)" = "between_plant",
-                                    "Percent cover (bare soil)" = "bare_soil",
-                                    "Percent cover (litter)" = "litter")),
-            conditionalPanel(condition = "input.indicator_type == 'first_hit' | input.indicator_type == 'any_hit'",
+            conditionalPanel(condition = "input.indicator_class == 'lpi'",
+                             selectInput(inputId = "indicator_type",
+                                         label = "Indicator calculation",
+                                         choices = c("Percent cover by custom groups (any hit)" = "any_hit",
+                                                     "Percent cover by custom groups (first hit)" = "first_hit",
+                                                     "Percent cover by species (any hit)" = "species_any_hit",
+                                                     "Percent cover by species (first hit)" = "species_first_hit",
+                                                     "Percent cover (between plant)" = "between_plant",
+                                                     "Percent cover (bare soil)" = "bare_soil",
+                                                     "Percent cover (litter)" = "litter"))),
+            
+            conditionalPanel(condition = "input.indicator_type == 'first_hit' | input.indicator_type == 'any_hit' | input.indicator_class == 'height'",
                              selectInput(inputId = "grouping_vars",
                                          label = "Grouping variable(s)",
                                          choices = c("Species Code" = "code",
@@ -59,11 +65,23 @@ ui <- fluidPage(
                                                      "County" = "County",
                                                      "Ecological Site ID" = "EcologicalSiteId"),
                                          multiple = TRUE)),
+            
+            conditionalPanel(condition = "input.indicator_class == 'height'",
+                             radioButtons(inputId = "height_type",
+                                          label = "Height calculation",
+                                          choices = c("Mean" = "mean",
+                                                      "Maximum" = "max")),
+                             checkboxInput(inputId = "omit_zero",
+                                           label = "Omit zero values from height calculations",
+                                           value = TRUE)),
+            
             radioButtons(inputId = "output_format",
                          label = "Results table format",
                          choices = c("Tall" = "tall",
                                      "Wide" = "wide"),
                          selected = "wide"),
+            
+            htmlOutput("data_mismatch_error"),
             
             actionButton(inputId = "calculate_button",
                          label = "Calculate!"),
@@ -110,6 +128,7 @@ server <- function(input, output, session) {
     workspace <- reactiveValues(placeholder = TRUE,
                                 temp_directory = tempdir(),
                                 original_directory = getwd(),
+                                current_data_type = "none",
                                 current_lut = read.csv("aim_state_species_list_2020.csv",
                                                        stringsAsFactors = FALSE),
                                 aim_lut = read.csv("aim_state_species_list_2020.csv",
@@ -182,6 +201,11 @@ server <- function(input, output, session) {
                      # No error!
                      output$query_error <- renderText("")
                      
+                     # Update the current data type
+                     # We use this to track whether the data right now match the indicator
+                     # being requested
+                     workspace$current_data_type <- input$indicator_class
+                     
                      updateTabsetPanel(session,
                                        inputId = "maintabs",
                                        selected = "Data")
@@ -213,19 +237,41 @@ server <- function(input, output, session) {
                          # Add a warning to check the lookup table
                          output$missing_codes_warning <- renderText("<p style='color:red;font-size:120%;'><b>Please check the Lookup Table tab to confirm that there are no codes missing attributes. If there are, please download, correct, and upload the lookup table.</b></p>")
                          current_data <- workspace$raw_data
-                         message("Executing species_join()")
-                         
-                         if (!("SpeciesState" %in% names(current_data)) & input$lookup_table == "aim") {
-                             output$speciesstate_warning <- renderText("<p style='color:red;font-size:150%;'><b>WARNING! The AIM lookup table can only be correctly used if the data include a 'SpeciesState' variable. Please either add that information to your data or download the lookup table, pare it down to the relevant state making sure there is only one entry per species, and upload it as a custom lookup table.</b></p>")
+                         if (input$indicator_class == "lpi") {
+                             message("LPI data it is! Executing species_join()")
+                             
+                             if (!("SpeciesState" %in% names(current_data)) & input$lookup_table == "aim") {
+                                 output$speciesstate_warning <- renderText("<p style='color:red;font-size:150%;'><b>WARNING! The AIM lookup table can only be correctly used if the data include a 'SpeciesState' variable. Please either add that information to your data or download the lookup table, pare it down to the relevant state making sure there is only one entry per species, and upload it as a custom lookup table.</b></p>")
+                             }
+                             
+                             current_data <- terradactyl::species_join(data = current_data,
+                                                                       data_code = "code",
+                                                                       species_file = workspace$current_lut,
+                                                                       species_code = "SpeciesCode",
+                                                                       species_duration = "Duration",
+                                                                       growth_habit_file = "",
+                                                                       by_state = "SpeciesState" %in% names(workspace$current_lut) & "SpeciesState" %in% names(current_data))
+                         } else if (input$indicator_class == "height") {
+                             message("Height data, eh? Attempting to join to the species list")
+                             
+                             data_join_vars <- c("Species")
+                             lut_join_vars <- c("SpeciesCode")
+                             
+                             # If there's SpeciesState info, use it
+                             if ("SpeciesState" %in% names(current_data) & "SpeciesState" %in% names(workspace$current_lut)) {
+                                 data_join_vars <- c(data_join_vars, "SpeciesState")
+                                 lut_join_vars <- c(lut_join_vars, "SpeciesState")
+                             }
+                             
+                             # This is how we have to do it for left_join()
+                             join_vars <- setNames(object = lut_join_vars,
+                                                   data_join_vars)
+                             
+                             workspace$current_data <- dplyr::left_join(x = current_data,
+                                                                        y = workspace$current_lut,
+                                                                        by = join_vars)
                          }
                          
-                         current_data <- terradactyl::species_join(data = current_data,
-                                                                   data_code = "code",
-                                                                   species_file = workspace$current_lut,
-                                                                   species_code = "SpeciesCode",
-                                                                   species_duration = "Duration",
-                                                                   growth_habit_file = "",
-                                                                   by_state = "SpeciesState" %in% names(workspace$current_lut) & "SpeciesState" %in% names(current_data))
                          
                          output$data_table <- renderDataTable(current_data)
                          workspace$current_data <- current_data
@@ -302,18 +348,30 @@ server <- function(input, output, session) {
                          query_results_list <- lapply(X = search_string_vector,
                                                       FUN = function(X,
                                                                      # search_type = input$search_type){
-                                                                     search_type = "Ecological Site ID"){
+                                                                     indicator_class = input$indicator_class) {
                                                           # Build the query
-                                                          query <- switch(search_type,
-                                                                          "Project Key" = {
+                                                          # query <- switch(search_type,
+                                                          #                 "Project Key" = {
+                                                          #                     paste0("http://api.landscapedatacommons.org/api/",
+                                                          #                            "datalpi?",
+                                                          #                            "ProjectKey=",
+                                                          #                            X)
+                                                          #                 },
+                                                          #                 "Ecological Site ID" = {
+                                                          #                     paste0("http://api.landscapedatacommons.org/api/",
+                                                          #                            "datalpi?",
+                                                          #                            "EcologicalSiteId=",
+                                                          #                            X)
+                                                          query <- switch(indicator_class,
+                                                                          "lpi" = {
                                                                               paste0("http://api.landscapedatacommons.org/api/",
                                                                                      "datalpi?",
-                                                                                     "ProjectKey=",
+                                                                                     "EcologicalSiteId=",
                                                                                      X)
                                                                           },
-                                                                          "Ecological Site ID" = {
+                                                                          "height" = {
                                                                               paste0("http://api.landscapedatacommons.org/api/",
-                                                                                     "datalpi?",
+                                                                                     "dataheight?",
                                                                                      "EcologicalSiteId=",
                                                                                      X)
                                                                           })
@@ -392,6 +450,11 @@ server <- function(input, output, session) {
                          message("Rendering data table")
                          output$data_table <- renderDataTable(workspace$display_data)
                          
+                         # Update the current data type
+                         # We use this to track whether the data right now match the indicator
+                         # being requested
+                         workspace$current_data_type <- input$indicator_class
+                         
                          updateTabsetPanel(session,
                                            inputId = "maintabs",
                                            selected = "Data")
@@ -403,80 +466,112 @@ server <- function(input, output, session) {
                  handlerExpr = {
                      message("Calculate button pressed!")
                      print(input$grouping_vars)
-                     if (!is.null(workspace$current_data)) {
-                         # Build a string to parse
-                         # This is because the pct_cover_* functions take bare variable names
-                         var_string <- paste0(input$grouping_vars,
-                                              collapse = ", ")
-                         
-                         
-                         argument_string <- paste0("lpi_tall = workspace$current_data, tall = ",
-                                                   switch(input$output_format,
-                                                          wide = {"FALSE"},
-                                                          tall = {"TRUE"}),
-                                                   ", by_line = FALSE, ")
-                         
-                         command_string <- switch(input$indicator_type,
-                                                  "first_hit" = {
-                                                      if (!is.null(input$grouping_vars)) {
-                                                          gsub(paste0("pct_cover(hit = 'first', ",
+                     
+                     output$data_mismatch_error <- renderText("")
+                     
+                     if (!is.null(workspace$current_data) & input$indicator_class == workspace$current_data_type) {
+                         if (input$indicator_class == "lpi") {
+                             # Build a string to parse
+                             # This is because the pct_cover_* functions take bare variable names
+                             var_string <- paste0(input$grouping_vars,
+                                                  collapse = ", ")
+                             
+                             
+                             argument_string <- paste0("lpi_tall = workspace$current_data, tall = ",
+                                                       switch(input$output_format,
+                                                              wide = {"FALSE"},
+                                                              tall = {"TRUE"}),
+                                                       ", by_line = FALSE, ")
+                             
+                             command_string <- switch(input$indicator_type,
+                                                      "first_hit" = {
+                                                          if (!is.null(input$grouping_vars)) {
+                                                              gsub(paste0("pct_cover(hit = 'first', ",
+                                                                          argument_string,
+                                                                          var_string,
+                                                                          ")"),
+                                                                   pattern = ", )$",
+                                                                   replacement = ")")
+                                                          } else {
+                                                              "NULL"
+                                                          }
+                                                      },
+                                                      "any_hit" = {
+                                                          if (!is.null(input$grouping_vars)) {
+                                                              gsub(paste0("pct_cover(hit = 'any', ",
+                                                                          argument_string,
+                                                                          var_string,
+                                                                          ")"),
+                                                                   pattern = ", )$",
+                                                                   replacement = ")")
+                                                          } else {
+                                                              "NULL"
+                                                          }
+                                                      },
+                                                      "species_first_hit" = {
+                                                          gsub(paste0("pct_cover_species(hit = 'first', ",
                                                                       argument_string,
-                                                                      var_string,
                                                                       ")"),
                                                                pattern = ", )$",
                                                                replacement = ")")
-                                                      } else {
-                                                          "NULL"
-                                                      }
-                                                  },
-                                                  "any_hit" = {
-                                                      if (!is.null(input$grouping_vars)) {
-                                                          gsub(paste0("pct_cover(hit = 'any', ",
+                                                      },
+                                                      "species_any_hit" = {
+                                                          gsub(paste0("pct_cover_species(hit = 'any', ",
                                                                       argument_string,
-                                                                      var_string,
                                                                       ")"),
                                                                pattern = ", )$",
                                                                replacement = ")")
-                                                      } else {
-                                                          "NULL"
-                                                      }
-                                                  },
-                                                  "species_first_hit" = {
-                                                      gsub(paste0("pct_cover_species(hit = 'first', ",
-                                                                  argument_string,
-                                                                  ")"),
-                                                           pattern = ", )$",
-                                                           replacement = ")")
-                                                  },
-                                                  "species_any_hit" = {
-                                                      gsub(paste0("pct_cover_species(hit = 'any', ",
-                                                                  argument_string,
-                                                                  ")"),
-                                                           pattern = ", )$",
-                                                           replacement = ")")
-                                                  },
-                                                  "between_plant" = {
-                                                      gsub(paste0("pct_cover_between_plant(",
-                                                                  argument_string,
-                                                                  ")"),
-                                                           pattern = ", )$",
-                                                           replacement = ")")
-                                                  },
-                                                  "bare_soil" = {
-                                                      gsub(paste0("pct_cover_bare_soil(",
-                                                                  argument_string,
-                                                                  ")"),
-                                                           pattern = ", )$",
-                                                           replacement = ")")
-                                                  },
-                                                  "litter" = {
-                                                      gsub(paste0("pct_cover_litter(",
-                                                                  argument_string,
-                                                                  ")"),
-                                                           pattern = ", )$",
-                                                           replacement = ")")
-                                                  })
-                         message(paste0("Command string is:", command_string))
+                                                      },
+                                                      "between_plant" = {
+                                                          gsub(paste0("pct_cover_between_plant(",
+                                                                      argument_string,
+                                                                      ")"),
+                                                               pattern = ", )$",
+                                                               replacement = ")")
+                                                      },
+                                                      "bare_soil" = {
+                                                          gsub(paste0("pct_cover_bare_soil(",
+                                                                      argument_string,
+                                                                      ")"),
+                                                               pattern = ", )$",
+                                                               replacement = ")")
+                                                      },
+                                                      "litter" = {
+                                                          gsub(paste0("pct_cover_litter(",
+                                                                      argument_string,
+                                                                      ")"),
+                                                               pattern = ", )$",
+                                                               replacement = ")")
+                                                      })
+                         } else if (input$indicator_class == "height") {
+                             # Build a string to parse
+                             # This is because the pct_cover_* functions take bare variable names
+                             var_string <- paste0(input$grouping_vars,
+                                                  collapse = ", ")
+                             
+                             # The dang function won't work if it's not grouping by SOMETHING
+                             # So we'll assume that "type" will always be there
+                             if (var_string == "") {
+                                 var_string <- "type"
+                             }
+                             
+                             argument_string <- paste0("height_tall = workspace$current_data, tall = ",
+                                                       switch(input$output_format,
+                                                              wide = {"FALSE"},
+                                                              tall = {"TRUE"}),
+                                                       ", method = '", input$height_type, "'",
+                                                       ", omit_zero = ", input$omit_zero,
+                                                       ", by_line = FALSE, ")
+                             
+                             command_string <- gsub(paste0("mean_height(",
+                                                           argument_string,
+                                                           var_string,
+                                                           ")"),
+                                                    pattern = ", )$",
+                                                    replacement = ")")
+                         }
+                         
+                         message(paste0("Command string is: ", command_string))
                          message("Attempting indicator calculation!")
                          workspace$results <- eval(parse(text = command_string))
                          
@@ -492,6 +587,10 @@ server <- function(input, output, session) {
                          updateTabsetPanel(session = session,
                                            inputId = "maintabs",
                                            "Results")
+                     }
+                     
+                     if (input$indicator_class != workspace$current_data_type) {
+                         output$data_mismatch_error <- renderText("<p style='color:red;font-size:150%;'><b>The current data are the wrong type for the currently selected indicator.<br>Please change the indicator type or use an appropriate data set.</b></p>")
                      }
                      
                  })
