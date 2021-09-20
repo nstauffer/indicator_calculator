@@ -267,9 +267,9 @@ server <- function(input, output, session) {
                              join_vars <- setNames(object = lut_join_vars,
                                                    data_join_vars)
                              
-                             workspace$current_data <- dplyr::left_join(x = current_data,
-                                                                        y = workspace$current_lut,
-                                                                        by = join_vars)
+                             current_data <- dplyr::left_join(x = current_data,
+                                                              y = workspace$current_lut,
+                                                              by = join_vars)
                          }
                          
                          
