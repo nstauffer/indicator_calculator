@@ -45,12 +45,16 @@
 
 
 
+<div id="select-the-type-of-indicators-you-want-to-calculate" class="section level3">
+<h3>1) Select the type of indicator(s) you want to calculate</h3>
+<p>This app can calculate indicators from either line-point intercept (LPI) or height data, but not both at the same time. Before uploading or downloading data you must decide which indicators you will be calculating from the data. If you change this value after uploading or downloading data, you must reupload or redownload your data in order to proceed.</p>
+</div>
 <div id="upload-your-data-or-query-the-landscape-data-commons-directly" class="section level3">
-<h3>1) Upload your data or query the Landscape Data Commons directly</h3>
-<p>You can either query data from the Landscape Data Commons with an ecological site ID (search for ecological sites on <a href="https://edit.jornada.nmsu.edu">EDIT</a>) <em>or</em> upload a dataLPI results table downloaded from the <a href="https://landscapedatacommons.org">Landscape Data Commons</a> as a .CSV file.</p>
+<h3>2) Upload your data or query the Landscape Data Commons directly</h3>
+<p>You can either query data from the Landscape Data Commons with an ecological site ID (search for ecological sites on <a href="https://edit.jornada.nmsu.edu">EDIT</a>) <em>or</em> upload a dataLPI or dateHeight results table downloaded from the <a href="https://landscapedatacommons.org">Landscape Data Commons</a> as a .CSV file. When uploading data, make sure that they’re correct for the type of indicators you selected in step 1.</p>
 </div>
 <div id="select-or-upload-a-species-information-lookup-table" class="section level3">
-<h3>2) Select or upload a species information lookup table</h3>
+<h3>3) Select or upload a species information lookup table</h3>
 <p>You can choose one of three species information lookup table options:</p>
 <ul>
 <li>The current Assessment, Inventory, and Monitoring (AIM) species information from the Terrestrial AIM Database (TerrADat). This table contains information including the growth habit, duration, noxious status, and relationship to sage-grouse. Note: This is <em>organized by state</em>. Do not use this list if your data do not contain the column “SpeciesState”.</li>
@@ -59,11 +63,12 @@
 </ul>
 </div>
 <div id="check-the-selected-lookup-table-for-missing-codes" class="section level3">
-<h3>3) Check the selected lookup table for missing codes</h3>
+<h3>4) Check the selected lookup table for missing codes</h3>
 <p>You can find your chosen/uploaded species information in the Lookup Table tab. Any codes in the column “SpeciesCode” that appear in the data but not the species information will have been added to the top of the table. Use the “Download current lookup table” button to download the species information, populate the appropriate values for those new codes, and use the updated table as a custom species information lookup table.</p>
 </div>
 <div id="select-the-indicator-to-calculate" class="section level3">
-<h3>4) Select the indicator to calculate</h3>
+<h3>5) Select the indicator to calculate</h3>
+<p>Indicators are calculated for each primary key. In wide format, there is a row for each primary key value and a column for each indicator (each unique grouping when using grouping variables). In tall format, there is a column each for primary keys, indicator, and indicator value with each row representing a unique combination of indicator and primary key.</p>
 <p>There are seven percent cover indicator calculation options. They are:</p>
 <ul>
 <li>Percent cover by custom group (any hit)
@@ -76,7 +81,7 @@
 </ul></li>
 <li>Percent cover by species (any hit)
 <ul>
-<li>This is equivalent to “Percent cover by custom group (any hit)” with the grouping variable “code” but excludes any non-plant records, e.g. rock, soil, or litter hits.</li>
+<li>This is equivalent to “Percent cover by custom group (any hit)” with the grouping variable “code” but excludes any non-plant records, e.g. rock, soil, or litter hits, using the codes from the LPI method in the <a href="https://www.landscapetoolbox.org/manuals/monitoring-manual/">Monitoring Manual for Grassland, Shrubland, and Savanna Ecosystems</a>.</li>
 </ul></li>
 <li>Percent cover by species (first hit)
 <ul>
@@ -84,15 +89,26 @@
 </ul></li>
 <li>Percent cover (between plant)
 <ul>
-<li>This will calculate the percent cover for all non-plant records (e.g. rock, litter) which do not have plant records in the canopy above them.</li>
+<li>This will calculate the percent cover for all non-plant records (e.g. rock or litter, using the codes from the LPI method in the <a href="https://www.landscapetoolbox.org/manuals/monitoring-manual/">Monitoring Manual for Grassland, Shrubland, and Savanna Ecosystems</a>) which do not have plant records in the canopy above them.</li>
 </ul></li>
 <li>Percent cover (bare soil)
 <ul>
-<li>This will calculate the percent cover for only soil records which do not have plant records in the canopy above them.</li>
+<li>This will calculate the percent cover for only soil records i.e., records with a SoilSurface value of “S” which do not have plant records in the canopy above them.</li>
 </ul></li>
 <li>Percent cover (litter)
 <ul>
-<li>This will calculate the percent cover for only litter records.</li>
+<li>This will calculate the percent cover for only litter records, using the litter codes from the LPI method in the <a href="https://www.landscapetoolbox.org/manuals/monitoring-manual/">Monitoring Manual for Grassland, Shrubland, and Savanna Ecosystems</a>.</li>
+</ul></li>
+</ul>
+<p>There are two selectable options for height indicators:</p>
+<ul>
+<li>Height calculation
+<ul>
+<li>This decides whether the maximum or mean is calculated for each grouping of height values.</li>
+</ul></li>
+<li>Omit zero values
+<ul>
+<li>This decides whether NA or zero height values are included in the calculation of the indicator values. This will not affect maximum height calculations, but may significantly change mean height results.</li>
 </ul></li>
 </ul>
 </div>
