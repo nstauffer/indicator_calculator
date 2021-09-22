@@ -171,6 +171,7 @@ ui <- fluidPage(
 #### SERVER ####
 server <- function(input, output, session) {
     
+    
     workspace <- reactiveValues(placeholder = TRUE,
                                 temp_directory = tempdir(),
                                 original_directory = getwd(),
@@ -269,11 +270,17 @@ server <- function(input, output, session) {
                      message("Change in lookup table type selection detected!")
                      # We'll only do this if it's not a custom table
                      if (input$lookup_table == "aim") {
+                         message("Using AIM lookup table")
                          workspace[["current_lut"]] <- workspace$aim_lut
                      } else if (input$lookup_table == "usda_plants") {
+                         message("Using USDA lookup table")
                          workspace[["current_lut"]] <- workspace$usda_lut
                      } else if (!is.null(workspace$custom_lut) & input$lookup_table == "custom") {
+                         message("Using custom lookup table")
                          workspace[["current_lut"]] <- workspace$custom_lut
+                     } else if (input$lookup_table == "nri_invasives") {
+                         message("Using NRI lookup table")
+                         workspace[["current_lut"]] <- workspace$nri_lut
                      }
                  })
     
@@ -281,6 +288,7 @@ server <- function(input, output, session) {
     observeEvent(eventExpr = list(workspace$current_lut,
                                   workspace$raw_data),
                  handlerExpr = {
+                     
                      message("Change in current_lut or raw_data detected!")
                      # Only proceed if there are data already
                      if (!is.null(workspace[["raw_data"]])) {
@@ -396,8 +404,7 @@ server <- function(input, output, session) {
                  })
     
     
-    
-    
+
     
     #### When the search button is pressed, do this ####
     observeEvent(eventExpr = input$search_button,
