@@ -187,6 +187,8 @@ server <- function(input, output, session) {
                                                    stringsAsFactors = FALSE),
                                 usda_lut = read.csv("usda_plants_characteristics_lookup.csv",
                                                     stringsAsFactors = FALSE),
+                                nri_lut = read.csv("nri_invasive_list_2021.csv",
+                                                   stringsAsFactors = FALSE),
                                 required_data_vars = c("PrimaryKey", "layer", "code"),
                                 minimum_data_vars = c("PrimaryKey",
                                                       "LineKey",
