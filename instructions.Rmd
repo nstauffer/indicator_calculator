@@ -27,7 +27,7 @@ You can find your chosen/uploaded species information in the Lookup Table tab. A
 
 
 ### 5) Select the indicator to calculate
-Indicators are calculated for each primary key. In wide format, there is a row for each primary key value and a column for each indicator (each unique grouping when using grouping variables). In tall format, there is a column each for primary keys, indicator, and indicator value with each row representing a unique combination of indicator and primary key.
+Indicators are calculated for each primary key. In wide format, there is a row for each primary key value and a column for each indicator (each unique grouping when using grouping variables). The results are the same in tall format but there is a column each for primary keys, indicator, and indicator value with each row representing a unique combination of indicator and primary key.
 
 There are seven percent cover indicator calculation options. They are:
 
