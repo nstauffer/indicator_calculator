@@ -4,3 +4,6 @@
 .Ruserdata
 scratchpad.R
 state_species_list_2020.csv
+nri_invasive_list_2021_original.csv
+test_data_bad_missing_var.csv
+test_data_no_speciesstate.csv
