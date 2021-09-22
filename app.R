@@ -59,10 +59,21 @@ ui <- fluidPage(
                         label = "Select which type of indicator to calculate",
                         choices = c("Cover" = "lpi",
                                     "Height" = "height")),
-            # selectInput(inputId = "search_type",
-            #             label = "LDC search method",
-            #             choices = c("Ecological Site ID", "State", ),
-            #             selected = "Ecological Site ID"),
+            
+            selectInput(inputId = "lookup_table",
+                        label = "Species information lookup table",
+                        choices = c("AIM" = "aim",
+                                    "NRI Invasive Species" = "nri_invasives",
+                                    "USDA Plants" = "usda_plants",
+                                    "Custom" = "custom"),
+                        selected = "usda_plants"),
+            conditionalPanel(condition = "input.lookup_table == 'custom'",
+                             fileInput(inputId = "custom_lut",
+                                       label = "Upload custom lookup table",
+                                       accept = "CSV")),
+            
+            hr(),
+            
             textInput(inputId = "search_string",
                       label = "Ecological Site ID",
                       value = "",
@@ -76,18 +87,9 @@ ui <- fluidPage(
             
             hr(),
             
-            selectInput(inputId = "lookup_table",
-                        label = "Species information lookup table",
-                        choices = c("AIM" = "aim",
-                                    "USDA Plants" = "usda_plants",
-                                    "Custom" = "custom")),
+            
             # checkboxInput(inputId = "by_state",
             #               label = "Join lookup table to data by state"),
-            
-            conditionalPanel(condition = "input.lookup_table == 'custom'",
-                             fileInput(inputId = "custom_lut",
-                                       label = "Upload custom lookup table",
-                                       accept = "CSV")),
             
             conditionalPanel(condition = "input.indicator_class == 'lpi'",
                              selectInput(inputId = "indicator_type",
