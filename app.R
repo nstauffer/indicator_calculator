@@ -5,6 +5,50 @@ options(shiny.maxRequestSize = 30*1024^2)
 
 #### UI ####
 ui <- fluidPage(
+    # This changes the position and styling of the notification
+    # Old RGB: 204,169,44
+    tags$head(
+        tags$style(
+            HTML(
+                ".shiny-notification {
+          position:fixed;
+          top: calc(30%);
+          left: calc(5%);
+          width: calc(25%);
+          opacity: 1;
+          font-weight: bold;
+          box-shadow: 0 0 0 rgba(181,181,181, 0.4);
+          animation: pulse 2s infinite;
+        }
+        @-webkit-keyframes pulse {
+          0% {
+            -webkit-box-shadow: 0 0 0 0 rgba(181,181,181, 0.4);
+          }
+          70% {
+            -webkit-box-shadow: 0 0 0 10px rgba(181,181,181, 0);
+          }
+          100% {
+            -webkit-box-shadow: 0 0 0 0 rgba(181,181,181, 0);
+          }
+        }
+        @keyframes pulse {
+          0% {
+            -moz-box-shadow: 0 0 0 0 rgba(181,181,181, 0.4);
+            box-shadow: 0 0 0 0 rgba(181,181,181, 0.4);
+          }
+          70% {
+            -moz-box-shadow: 0 0 0 10px rgba(181,181,181, 0);
+            box-shadow: 0 0 0 10px rgba(181,181,181, 0);
+          }
+          100% {
+            -moz-box-shadow: 0 0 0 0 rgba(181,181,181, 0);
+            box-shadow: 0 0 0 0 rgba(181,181,181, 0);
+          }
+        }"
+            )
+        )
+    ),
+    
     
     titlePanel("Indicator Calculator"),
     
@@ -81,7 +125,7 @@ ui <- fluidPage(
                                      "Wide" = "wide"),
                          selected = "wide"),
             
-            htmlOutput("data_mismatch_error"),
+            # htmlOutput("data_mismatch_error"),
             
             actionButton(inputId = "calculate_button",
                          label = "Calculate!"),
@@ -105,10 +149,10 @@ ui <- fluidPage(
                                  dataTableOutput("current_lut_table"),
                         ),
                         tabPanel(title = "Data",
-                                 htmlOutput("missing_vars_error"),
-                                 htmlOutput("speciesstate_warning"),
-                                 htmlOutput("query_error"),
-                                 htmlOutput("missing_codes_warning"),
+                                 # htmlOutput("missing_vars_error"),
+                                 # htmlOutput("speciesstate_warning"),
+                                 # htmlOutput("query_error"),
+                                 # htmlOutput("missing_codes_warning"),
                                  dataTableOutput("data_table")
                         ),
                         tabPanel(title = "Results",
@@ -170,7 +214,7 @@ server <- function(input, output, session) {
     observeEvent(eventExpr = input$uploaded_data,
                  handlerExpr = {
                      message("Data set uploaded! Reading that in for you.")
-                     output$missing_vars_error <- renderText("")
+                     # output$missing_vars_error <- renderText("")
                      workspace$raw_data <- read.csv(input$uploaded_data$datapath,
                                                     stringsAsFactors = FALSE)
                      
@@ -181,10 +225,16 @@ server <- function(input, output, session) {
                                           collapse = ", ")))
                      if (length(workspace$missing_required_vars) > 0) {
                          message("Missing variables. Warning the user!")
-                         output$missing_vars_error <- renderText(paste0("<p style='color:red;font-size:150%'><b>The following required variables are missing from the uploaded data:<br>",
+                         missing_vars_error_message <- paste0("The following required variables are missing from the uploaded data: ",
                                                                         paste(workspace$missing_required_vars,
-                                                                              collapse = ", "),
-                                                                        "</b></p>"))
+                                                                              collapse = ", "))
+                         
+                         showNotification(ui = missing_vars_error_message,
+                                          duration = NULL,
+                                          closeButton = TRUE,
+                                          id = "missing_vars_error",
+                                          type = "error")
+                         
                          message("Nullifying workspace$raw_data")
                          
                          workspace$raw_data <- NULL
@@ -199,7 +249,7 @@ server <- function(input, output, session) {
                      }
                      
                      # No error!
-                     output$query_error <- renderText("")
+                     # output$query_error <- renderText("")
                      
                      # Update the current data type
                      # We use this to track whether the data right now match the indicator
@@ -232,16 +282,32 @@ server <- function(input, output, session) {
                      message("Change in current_lut or raw_data detected!")
                      # Only proceed if there are data already
                      if (!is.null(workspace[["raw_data"]])) {
-                         output$speciesstate_warning <- renderText("")
+                         showNotification(ui = "Updating data. Please wait.",
+                                          duration = NULL,
+                                          closeButton = FALSE,
+                                          id = "updating",
+                                          type = "message")
+                         
+                         # output$speciesstate_warning <- renderText("")
                          message("There're values in raw_data. Proceeding")
                          # Add a warning to check the lookup table
-                         output$missing_codes_warning <- renderText("<p style='color:red;font-size:120%;'><b>Please check the Lookup Table tab to confirm that there are no codes missing attributes. If there are, please download, correct, and upload the lookup table.</b></p>")
+                         # output$missing_codes_warning <- renderText("<p style='color:red;font-size:120%;'><b>Please check the Lookup Table tab to confirm that there are no codes missing attributes. If there are, please download, correct, and upload the lookup table.</b></p>")
+                         showNotification(ui = "Please check the Lookup Table tab to confirm that there are no codes missing attributes. If there are, please download, correct, and upload the lookup table.",
+                                          duration = NULL,
+                                          closeButton = TRUE,
+                                          id = "missing_codes_error",
+                                          type = "error")
                          current_data <- workspace$raw_data
                          if (input$indicator_class == "lpi") {
                              message("LPI data it is! Executing species_join()")
                              
                              if (!("SpeciesState" %in% names(current_data)) & input$lookup_table == "aim") {
-                                 output$speciesstate_warning <- renderText("<p style='color:red;font-size:150%;'><b>WARNING! The AIM lookup table can only be correctly used if the data include a 'SpeciesState' variable. Please either add that information to your data or download the lookup table, pare it down to the relevant state making sure there is only one entry per species, and upload it as a custom lookup table.</b></p>")
+                                 # output$speciesstate_warning <- renderText("<p style='color:red;font-size:150%;'><b>WARNING! The AIM lookup table can only be correctly used if the data include a 'SpeciesState' variable. Please either add that information to your data or download the lookup table, pare it down to the relevant state making sure there is only one entry per species, and upload it as a custom lookup table.</b></p>")
+                                 showNotification(ui = "WARNING! The AIM lookup table can only be correctly used if the data include a 'SpeciesState' variable. Please either add that information to your data or download the lookup table, pare it down to the relevant state making sure there is only one entry per species, and upload it as a custom lookup table.",
+                                                  duration = NULL,
+                                                  closeButton = TRUE,
+                                                  id = "speciesstate_error",
+                                                  type = "error")
                              }
                              
                              current_data <- terradactyl::species_join(data = current_data,
@@ -312,6 +378,8 @@ server <- function(input, output, session) {
                                    row.names = FALSE)
                          
                          output$current_lut_table <- renderDataTable(workspace$current_lut)
+                         
+                         removeNotification(id = "updating")
                      } 
                  })
     
@@ -332,8 +400,14 @@ server <- function(input, output, session) {
     #### When the search button is pressed, do this ####
     observeEvent(eventExpr = input$search_button,
                  handlerExpr = {
+                     
+                     showNotification(ui = "Retrieving data from the Landscape Data Commons. Please be patient as this may take a little bit.",
+                                      duration = NULL,
+                                      closeButton = FALSE,
+                                      id = "searching",
+                                      type = "message")
+                     
                      message("Search button has been pressed!")
-                     output$query_error <- renderText("")
                      # Only do anything if there's an search string
                      if (input$search_string != "") {
                          # Make sure it's uppercase
@@ -401,10 +475,21 @@ server <- function(input, output, session) {
                          
                          if (length(workspace$missing_ecosites) > 0) {
                              message("There was an error with the query!")
-                             output$query_error <- renderText(paste("<p style='color:red;font-size:150%;'><b>WARNING! The following are not valid ecological site IDs recognized by EDIT:<br>",
-                                                                    paste(workspace$missing_ecosites,
-                                                                          collapse = ", "),
-                                                                    "</b></p>"))
+                             query_error_message <- paste("Warning! The following are not valid ",
+                                                          switch(input$search_type,
+                                                                 "primarykey" = {
+                                                                     "PrimaryKey values in the Landscape Data Commons: "
+                                                                 },
+                                                                 "ecosite" = {
+                                                                     "ecological site IDs associated with data in the Landscape Data Commons: "
+                                                                 }),
+                                                                    paste(workspace$missing_keys,
+                                                                          collapse = ", "))
+                             showNotification(ui = query_error_message,
+                                              duration = NULL,
+                                              closeButton = TRUE,
+                                              id = "query_error",
+                                              type = "error")
                          }
                          
                          # Only keep going if there are results!!!!
@@ -458,6 +543,9 @@ server <- function(input, output, session) {
                          updateTabsetPanel(session,
                                            inputId = "maintabs",
                                            selected = "Data")
+                         
+                         removeNotification(id = "searching")
+                         
                      }
                  })
     
@@ -467,9 +555,15 @@ server <- function(input, output, session) {
                      message("Calculate button pressed!")
                      print(input$grouping_vars)
                      
-                     output$data_mismatch_error <- renderText("")
+                     # output$data_mismatch_error <- renderText("")
                      
                      if (!is.null(workspace$current_data) & input$indicator_class == workspace$current_data_type) {
+                         showNotification(ui = "Calculating indicators. Please wait.",
+                                          duration = NULL,
+                                          closeButton = FALSE,
+                                          id = "calculating",
+                                          type = "message")
+                         
                          if (input$indicator_class == "lpi") {
                              # Build a string to parse
                              # This is because the pct_cover_* functions take bare variable names
@@ -587,10 +681,17 @@ server <- function(input, output, session) {
                          updateTabsetPanel(session = session,
                                            inputId = "maintabs",
                                            "Results")
+                         
+                         removeNotification(id = "calculating")
                      }
                      
                      if (input$indicator_class != workspace$current_data_type) {
-                         output$data_mismatch_error <- renderText("<p style='color:red;font-size:150%;'><b>The current data are the wrong type for the currently selected indicator.<br>Please change the indicator type or use an appropriate data set.</b></p>")
+                         # output$data_mismatch_error <- renderText("<p style='color:red;font-size:150%;'><b>The current data are the wrong type for the currently selected indicator.<br>Please change the indicator type or use an appropriate data set.</b></p>")
+                         showNotification(ui = "The current data are the wrong type for the currently selected indicator. Please change the indicator type or use an appropriate data set.",
+                                          duration = NULL,
+                                          closeButton = TRUE,
+                                          id = "data_mismatch_error",
+                                          type = "error")
                      }
                      
                  })
