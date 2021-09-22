@@ -74,8 +74,13 @@ ui <- fluidPage(
             
             hr(),
             
+            selectInput(inputId = "search_type",
+                        label = "LDC search method",
+                        choices = c("Ecological Site ID" = "ecosite",
+                                    "Primary key" = "primarykey"),
+                        selected = "ecosite"),
             textInput(inputId = "search_string",
-                      label = "Ecological Site ID",
+                      label = "Ecological Site ID(s)",
                       value = "",
                       placeholder = "R036XB006NM"),
             actionButton(inputId = "search_button",
@@ -200,6 +205,27 @@ server <- function(input, output, session) {
                                                      "DS", "W", "VL", "GR", "CB", "ST",
                                                      "S", "LC", "M", "D", "W", "R",
                                                      "CY", "EL", "BY", "BR"))
+    
+    
+    #### When the search type changes, do this ####
+    observeEvent(eventExpr = input$search_type,
+                 handlerExpr = {
+                     updateTextInput(inputId = "search_string",
+                                     label = switch(input$search_type,
+                                                    "ecosite" = {
+                                                        "Ecological Site ID(s)"
+                                                    },
+                                                    "primarykey" = {
+                                                        "Primary key(s)"
+                                                    }),
+                                     placeholder = switch(input$search_type,
+                                                          "ecosite" = {
+                                                              "R036XB006NM"
+                                                          },
+                                                          "primarykey" = {
+                                                              ""
+                                                          }))
+                 })
     
     
     #### When a custom lookup table is uploaded, do this ####
@@ -430,34 +456,27 @@ server <- function(input, output, session) {
                          
                          query_results_list <- lapply(X = search_string_vector,
                                                       FUN = function(X,
-                                                                     # search_type = input$search_type){
                                                                      indicator_class = input$indicator_class) {
                                                           # Build the query
-                                                          # query <- switch(search_type,
-                                                          #                 "Project Key" = {
-                                                          #                     paste0("http://api.landscapedatacommons.org/api/",
-                                                          #                            "datalpi?",
-                                                          #                            "ProjectKey=",
-                                                          #                            X)
-                                                          #                 },
-                                                          #                 "Ecological Site ID" = {
-                                                          #                     paste0("http://api.landscapedatacommons.org/api/",
-                                                          #                            "datalpi?",
-                                                          #                            "EcologicalSiteId=",
-                                                          #                            X)
-                                                          query <- switch(indicator_class,
-                                                                          "lpi" = {
-                                                                              paste0("http://api.landscapedatacommons.org/api/",
-                                                                                     "datalpi?",
-                                                                                     "EcologicalSiteId=",
-                                                                                     X)
+                                                          query_tabletype <- switch(indicator_class,
+                                                                                    "lpi" = {
+                                                                                        "datalpi"
+                                                                                    },
+                                                                                    "height" = {
+                                                                                        "dataheight"
+                                                                                    })
+                                                          query_keytype <- switch(input$search_type,
+                                                                          "primarykey" = {
+                                                                              "PrimaryKey"
                                                                           },
-                                                                          "height" = {
-                                                                              paste0("http://api.landscapedatacommons.org/api/",
-                                                                                     "dataheight?",
-                                                                                     "EcologicalSiteId=",
-                                                                                     X)
+                                                                          "ecosite" = {
+                                                                              "EcologicalSiteId"
                                                                           })
+
+                                                          query <- paste0("http://api.landscapedatacommons.org/api/",
+                                                                          query_tabletype, "?",
+                                                                          query_keytype, "=",
+                                                                          X)
                                                           
                                                           # Getting the data via curl
                                                           # connection <- curl::curl(query)
@@ -479,10 +498,17 @@ server <- function(input, output, session) {
                                                   query_results_list)
                          
                          # So we can tell the user later which actually got queried
-                         workspace$queried_ecosites <- unique(query_results$EcologicalSiteId)
-                         workspace$missing_ecosites <- search_string_vector[!(search_string_vector %in% workspace$queried_ecosites)]
+                         current_search_key_type <- switch(input$search_type,
+                                                           "primarykey" = {
+                                                               "PrimaryKey"
+                                                           },
+                                                           "ecosite" = {
+                                                               "EcologicalSiteId"
+                                                           })
+                         workspace$queried_keys <- unique(query_results[[current_search_key_type]])
+                         workspace$missing_keys <- search_string_vector[!(search_string_vector %in% workspace$queried_keys)]
                          
-                         if (length(workspace$missing_ecosites) > 0) {
+                         if (length(workspace$missing_keys) > 0) {
                              message("There was an error with the query!")
                              query_error_message <- paste("Warning! The following are not valid ",
                                                           switch(input$search_type,
