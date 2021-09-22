@@ -311,7 +311,8 @@ server <- function(input, output, session) {
                  })
     
     #### When the lookup table or raw data is updated, do this ####
-    observeEvent(eventExpr = list(workspace$current_lut,
+    observeEvent(eventExpr = list(input$lookup_table,
+                                  input$custom_lut,
                                   workspace$raw_data),
                  handlerExpr = {
                      
